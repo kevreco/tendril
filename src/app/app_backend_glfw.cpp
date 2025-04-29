@@ -130,20 +130,20 @@ int app_backend::show()
     {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;   // Enable Keyboard Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;    // Enable Gamepad Controls
+
         ImGui_ImplGlfw_InitForOpenGL(g.window, true);
         ImGui_ImplOpenGL3_Init();
 
         // Setup style
         ImGui::StyleColorsDark();
+    }
 
-        ImGuiIO& io = ImGui::GetIO();
-
-        // Load Fonts
-        io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 23.0f);
-        io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 18.0f);
-        io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 26.0f);
-        io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 32.0f);
-        io.Fonts->AddFontDefault();
+    if (pre_loop_func)
+    {
+        pre_loop_func(pre_loop_func_ctx);
     }
 
 #ifdef __EMSCRIPTEN__

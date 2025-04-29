@@ -50,6 +50,10 @@ struct app_backend
     // User data forwarded to the show_func function.
     void* show_func_ctx = NULL;
 
+    // Callback called before the loop
+    void (*pre_loop_func)(void* ctx) = NULL;
+    void* pre_loop_func_ctx = NULL;
+
     // String to identify which backend is being used.
     const char* identifier();
 
@@ -78,9 +82,6 @@ struct td_app : app_backend {
 
     td_app();
 	~td_app();
-
-	// Display our application
-	int show_core();
 };
 
 struct path_bender;

@@ -164,8 +164,11 @@ int app_backend::show()
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    ImGui::ApplyCustomTheme();
-    ImGui::LoadFonts();
+
+    if (pre_loop_func)
+    {
+        pre_loop_func(pre_loop_func_ctx);
+    }
 
     // Our state
 
