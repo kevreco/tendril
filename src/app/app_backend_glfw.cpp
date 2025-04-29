@@ -1,7 +1,6 @@
 #include <stdio.h>
 
-//#define IMGUI_IMPL_OPENGL_ES2
-//#include <GLFW/glfw3.h> // Will drag system OpenGL headers
+#include <GLFW/glfw3.h>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -9,28 +8,9 @@
 #define EM_JS(x1, x2, x3, x4)
 #endif
 
-
-
-//#include "imgui.h"
-//#include "imgui_impl_glfw.h"
-//#include "imgui_impl_opengl3.h"
-//#include <stdio.h>
-//#define GL_SILENCE_DEPRECATION
-//#if defined(IMGUI_IMPL_OPENGL_ES2)
-//#include <GLES2/gl2.h>
-//#endif
-//#if defined(GLFW_INCLUDE_ES3)
-//#include <GLES3/gl3.h>
-//#endif
- 
-//#define GLFW_INCLUDE_ES3
-//#include <GLES3/gl3.h>
-//#include <GLFW/glfw3.h>
-//
-//#include "imgui.h"
-//#include "imgui_impl_glfw.h"
-//#include "imgui_impl_opengl3.h"
-//#include <iostream>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -44,18 +24,145 @@ struct global {
 
 // Function used by c++ to get the size of the html canvas
 EM_JS(int, canvas_get_width, (), {
-  return Module.canvas.width;
+    return Module.canvas.width;
 });
 
 // Function used by c++ to get the size of the html canvas
 EM_JS(int, canvas_get_height, (), {
-  return Module.canvas.height;
+    return Module.canvas.height;
 });
 
 // Function called by javascript
 EM_JS(void, resizeCanvas, (), {
-  js_resizeCanvas();
+    js_resizeCanvas();
 });
+
+void on_size_changed();
+
+void loop_step();
+
+const char* app_backend::identifier()
+{
+    return "Dear ImGui / EMSCRIPTEN / OpenGL ES3";
+}
+
+void app_backend::set_initial_position(int x, int y)
+{
+#ifdef __EMSCRIPTEN__
+    (void)x;
+    (void)y;
+#else
+    initial_x = x;
+    initial_y = y;
+#endif
+}
+
+void app_backend::set_initial_size(int width, int height)
+{
+#ifdef __EMSCRIPTEN__
+    (void)width;
+    (void)height;
+#else
+    initial_width = width;
+    initial_height = height;
+#endif
+}
+
+void app_backend::set_name(const char* _name)
+{
+    name = _name;
+}
+
+void app_backend::set_title(const char* _title)
+{
+#ifdef __EMSCRIPTEN__
+    (void)_title;
+#else
+    title = _title;
+#endif
+}
+
+void app_backend::set_icon_path(const char* path)
+{
+#ifdef __EMSCRIPTEN__
+    (void)path;
+#else
+    icon_path = path;
+#endif
+}
+
+int app_backend::show()
+{
+#ifdef __EMSCRIPTEN__
+    g.width = canvas_get_width();
+    g.height = canvas_get_height();
+#endif
+
+    g.backend = this;
+
+    // Initialize OpenGL
+    {
+        if (!glfwInit())
+        {
+            fprintf(stderr, "Failed to initialize GLFW\n");
+            return 1;
+        }
+
+        // We don't want the old OpenGL
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
+
+        // Open a window and create its OpenGL context
+        int canvas_width = g.width;
+        int canvas_height = g.height;
+
+        g.window = glfwCreateWindow(canvas_width, canvas_height, name, NULL, NULL);
+        if (g.window == NULL)
+        {
+            fprintf(stderr, "Failed to open GLFW window.\n");
+            glfwTerminate();
+            return -1;
+        }
+
+        glfwMakeContextCurrent(g.window); // Initialize GLEW
+    }
+
+    // Setup Dear ImGui binding
+    {
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui_ImplGlfw_InitForOpenGL(g.window, true);
+        ImGui_ImplOpenGL3_Init();
+
+        // Setup style
+        ImGui::StyleColorsDark();
+
+        ImGuiIO& io = ImGui::GetIO();
+
+        // Load Fonts
+        io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 23.0f);
+        io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 18.0f);
+        io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 26.0f);
+        io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 32.0f);
+        io.Fonts->AddFontDefault();
+    }
+
+#ifdef __EMSCRIPTEN__
+    resizeCanvas();
+#endif
+
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop(loop_step, 0, 1);
+#else
+    while (!g.should_close)
+    {
+        loop_step();
+    }
+#endif
+
+    glfwTerminate();
+
+    return 0;
+}
 
 void on_size_changed()
 {
@@ -108,142 +215,4 @@ void loop_step()
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwMakeContextCurrent(g.window);
-}
-
-int init_gl()
-{
-    if (!glfwInit())
-    {
-        fprintf(stderr, "Failed to initialize GLFW\n");
-        return 1;
-    }
-
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL
-
-    // Open a window and create its OpenGL context
-    int canvas_width = g.width;
-    int canvas_height = g.height;
-    // @TODO use name app.name instead of "WebGui Demo"
-    g.window = glfwCreateWindow(canvas_width, canvas_height, "WebGui Demo", NULL, NULL);
-    if (g.window == NULL)
-    {
-        fprintf(stderr, "Failed to open GLFW window.\n");
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(g.window); // Initialize GLEW
-
-    return 0;
-}
-
-int init_imgui()
-{
-    // Setup Dear ImGui binding
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(g.window, true);
-    ImGui_ImplOpenGL3_Init();
-
-    // Setup style
-    ImGui::StyleColorsDark();
-
-    ImGuiIO& io = ImGui::GetIO();
-
-    // Load Fonts
-    io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 23.0f);
-    io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 18.0f);
-    io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 26.0f);
-    io.Fonts->AddFontFromFileTTF("dejavu-sans.book.ttf", 32.0f);
-    io.Fonts->AddFontDefault();
-#ifdef __EMSCRIPTEN__
-    resizeCanvas();
-#endif
-    return 0;
-}
-
-const char* app_backend::identifier()
-{
-    return "Dear ImGui / EMSCRIPTEN / OpenGL ES3";
-}
-
-void app_backend::set_initial_position(int x, int y)
-{
-#ifdef __EMSCRIPTEN__
-    (void)x;
-    (void)y;
-#else
-    initial_x = x;
-    initial_y = y;
-#endif
-}
-
-void app_backend::set_initial_size(int width, int height)
-{
-#ifdef __EMSCRIPTEN__
-    (void)width;
-    (void)height;
-#else
-    initial_width = width;
-    initial_height = height;
-#endif
-}
-
-void app_backend::set_name(const char* _name)
-{
-#ifdef __EMSCRIPTEN__
-    (void)_name;
-#else
-    name = _name;
-#endif
-}
-
-void app_backend::set_title(const char* _title)
-{
-#ifdef __EMSCRIPTEN__
-    (void)_title;
-#else
-    title = _title;
-#endif
-}
-
-void app_backend::set_icon_path(const char* path)
-{
-#ifdef __EMSCRIPTEN__
-    (void)path;
-#else
-    icon_path = path;
-#endif
-}
-
-int app_backend::show()
-{
-#ifdef __EMSCRIPTEN__
-    g.width = canvas_get_width();
-    g.height = canvas_get_height();
-#endif
-
-    g.backend = this;
-
-    if (init_gl() != 0)
-    {
-        return 1;
-    }
-
-    if (init_imgui() != 0)
-    {
-        return 1;
-    }
-
-#ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(loop_step, 0, 1);
-#else
-    while (!g.should_close)
-    {
-        loop_step();
-    }
-#endif
-
-    glfwTerminate();
-
-    return 0;
 }
