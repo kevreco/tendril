@@ -65,6 +65,9 @@ struct app_backend
 
 	int show();
 
+    // Transfer existing file from the (virtual) file system to the browser.
+    static void save_file_client_side(const char* fs_filename, const char* local_filename);
+
 	// Simple helper function to load an image into a OpenGL texture with common settings
     static bool load_or_update_texture(const void* data, int width, int height, texture_handle* out_texture);
 	static bool load_texture_from_memory(const void* data, int width, int height, texture_handle* out_texture);

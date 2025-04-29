@@ -23,18 +23,23 @@ struct global {
 } g;
 
 // Function used by c++ to get the size of the html canvas
-EM_JS(int, canvas_get_width, (), {
+EM_JS(int, js_canvas_get_width, (), {
     return Module.canvas.width;
 });
 
 // Function used by c++ to get the size of the html canvas
-EM_JS(int, canvas_get_height, (), {
+EM_JS(int, js_canvas_get_height, (), {
     return Module.canvas.height;
 });
 
-// Function called by javascript
-EM_JS(void, resizeCanvas, (), {
-    js_resizeCanvas();
+// resizeCanvas is a function defined in a .js file
+EM_JS(void, js_resize_canvas, (), {
+    resizeCanvas();
+});
+
+// clientSideSaveAs is a function defined in a .js file
+EM_JS(void, js_client_side_save_as, (const char* fsFilename, int fsFilenameLen, const char* localFilename, int localFilenameLen), {
+    clientSideSaveAs(UTF8ToString(fsFilename, fsFilenameLen), UTF8ToString(localFilename, localFilenameLen));
 });
 
 void on_size_changed();
@@ -94,8 +99,8 @@ void app_backend::set_icon_path(const char* path)
 int app_backend::show()
 {
 #ifdef __EMSCRIPTEN__
-    g.width = canvas_get_width();
-    g.height = canvas_get_height();
+    g.width = js_canvas_get_width();
+    g.height = js_canvas_get_height();
 #endif
 
     g.backend = this;
@@ -147,7 +152,7 @@ int app_backend::show()
     }
 
 #ifdef __EMSCRIPTEN__
-    resizeCanvas();
+    js_resize_canvas();
 #endif
 
 #ifdef __EMSCRIPTEN__
@@ -164,6 +169,13 @@ int app_backend::show()
     return 0;
 }
 
+void app_backend::save_file_client_side(const char* fs_filename, const char* local_filename)
+{
+#ifdef __EMSCRIPTEN__
+    js_client_side_save_as(fs_filename, strlen(fs_filename), local_filename, strlen(local_filename));
+#endif
+}
+
 void on_size_changed()
 {
     glfwSetWindowSize(g.window, g.width, g.height);
@@ -174,8 +186,8 @@ void on_size_changed()
 void loop_step()
 {
 #ifdef __EMSCRIPTEN__
-    int width = canvas_get_width();
-    int height = canvas_get_height();
+    int width = js_canvas_get_width();
+    int height = js_canvas_get_height();
 
     if (width != g.width || height != g.height)
     {

@@ -242,6 +242,13 @@ int app_backend::show()
     return exit_code;
 }
 
+void app_backend::save_file_client_side(const char* fs_filename, const char* local_filename)
+{
+    (void)fs_filename;
+    (void)local_filename;
+    // Do nothing
+}
+
 bool app_backend::load_texture_from_file_memory(const void* data, size_t data_size, texture_handle* out_texture, int* out_width, int* out_height)
 {
     // Load from file

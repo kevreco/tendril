@@ -822,6 +822,8 @@ void td_demo::display_svg_widget(const td_path& path, float button_width)
 	{
 		td::to_svg(path, svg_file_name, TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT, "darkgreen");
 
+		app_backend::save_file_client_side(svg_file_name, svg_file_name);
+
 		ImGuiContext* ctx = ImGui::GetCurrentContext();
 		if (ctx->PlatformIO.Platform_OpenInShellFn != NULL)
 		{

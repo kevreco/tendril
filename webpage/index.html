@@ -21,6 +21,28 @@
       /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
       canvas.emscripten { border: 0px none; background-color: black; }
     </style>
+    <!-- Using FileSaver.min.js to save a file on client side --!>
+    <!-- Not sure why in 2025 we need a dependency to download a file in a brower. --!>
+    <script type="text/javascript" src="FileSaver.min.js"></script>
+    <script type='text/javascript'>
+        function clientSideSaveAs(fsFilename, localFilename)     // This can be called by C/C++ code
+        {
+            var data = FS.readFile(fsFilename)
+           
+            var blob;
+            var isSafari = window.safari !== undefined;
+            if (isSafari)
+                blob = new Blob([data.buffer], { type: "application/octet-stream" });
+            else
+                blob = new Blob([data.buffer], { type: "application/octet-binary" });
+            
+            saveAs(blob, localFilename);
+        }
+        function resizeCanvas() {
+            document.getElementById('canvas').width = window.innerWidth;
+            document.getElementById('canvas').height = window.innerHeight;
+        }
+    </script>
   </head>
   <body>
 
@@ -56,12 +78,7 @@
         totalDependencies: 0,
         monitorRunDependencies: function(left) {}
       };
-      window.addEventListener('resize', js_resizeCanvas, false);
-      function js_resizeCanvas() {
-            document.getElementById('canvas').width = window.innerWidth;
-            document.getElementById('canvas').height = window.innerHeight;
-      }
-
+      window.addEventListener('resize', resizeCanvas, false);
     </script>
     <script async type="text/javascript" src="imgui.js"></script>
   </body>
