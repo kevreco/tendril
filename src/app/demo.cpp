@@ -412,6 +412,11 @@ void td_demo::display_demo()
 
 	path_bender bender;
 
+	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+	float vp_margin = 20.0f;
+	ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + vp_margin, main_viewport->WorkPos.y + vp_margin), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(main_viewport->WorkSize.x - (vp_margin * 2), main_viewport->WorkSize.y - (vp_margin * 2)), ImGuiCond_FirstUseEver);
+
 	if (ImGui::Begin("Tendril Demo"))
 	{
 		if (ImGui::Button("Reset demo"))
