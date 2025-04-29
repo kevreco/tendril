@@ -374,7 +374,7 @@ namespace ImGui {
 	static inline void LoadFonts()
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		ImFont* font = io.Fonts->AddFontFromFileTTF(IMGUI_EXTENSION_TEXT_FONT, 16.0f);
+		ImFont* font = io.Fonts->AddFontFromFileTTF(IMGUI_EXTENSION_TEXT_FONT, 18.0f);
 		IM_ASSERT(font != nullptr);
 		// Merge in icons from Font Awesome
 		static const ImWchar icons_ranges[] = { ICON_MIN_LC, ICON_MAX_16_LC, 0 };
