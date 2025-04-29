@@ -3,8 +3,6 @@
 #include "cb/cb_add_files.h"
 #include "cb/cb_assert.h"
 
-const char* root_dir = "./";
-
 /* Forward declarations */
 
 void assert_path(const char* path);
@@ -18,11 +16,13 @@ int main()
 {
     cb_init();
 
-    //build_with("Release");
-
+    build_with("Debug");
+    
+#ifdef CI
     cb_clear(); /* Clear all values of cb. */
 
-    const char* ac_exe = build_with("Debug");
+    build_with("Release");
+#endif
 
     cb_destroy();
 
@@ -38,10 +38,7 @@ void my_project(const char* project_name, const char* toolchain, const char* con
 
     cb_bool is_debug = cb_str_equals(config, "Debug");
 
-    if (is_debug
-        /* @FIXME sanitize=address require clang with msvc*/
-        && (cb_str_equals(toolchain, "gcc"))
-        )
+    if (is_debug && (cb_str_equals(toolchain, "gcc")))
     {
         cb_add(cb_CXFLAGS, "-fsanitize=address"); /* Address sanitizer, same flag for gcc and msvc. */
     }
@@ -102,9 +99,7 @@ const char* build_with(const char* config)
         cb_set(cb_BINARY_TYPE, cb_STATIC_LIBRARY);
         
         cb_add(cb_FILES, "./src/tendril/build.cpp");
-        
-        //cb_add(cb_CXFLAGS, "-std=c++11");
-
+       
         cb_bake();
     }
     
@@ -130,32 +125,12 @@ const char* build_with(const char* config)
         cb_add(cb_LIBRARIES, "glfw");
         cb_add(cb_LIBRARIES, "rt");
         cb_add(cb_LIBRARIES, "m");
-        //cb_add(cb_LIBRARIES, "dl");
-
-        //cb_add(cb_CXFLAGS, "-std=c++11");
-        //glfw - lrt - lm - ldl
-        //cb_process_handle* process = cb_process_to_string("pkg-config --static --libs glfw3", NULL, 0);
-        //const char* libs = cb_tmp_str(cb_process_stdout_string(process));
-        //cb_process_end(process);
-        //
-        //process = cb_process_to_string("pkg-config --cflags glfw3", NULL, 0);
-        //const char* flags = cb_tmp_str(cb_process_stdout_string(process));
-        //cb_process_end(process);
-
-        //fprintf(stderr, "glfw3 LIBS: %s", libs);
-        //fprintf(stderr, "glfw3 FLAGS: %s", flags);
-        //cb_add(cb_LIBRARIES, libs);
-        //cb_add(cb_CXFLAGS, flags);
-        
-        //cb_add(cb_CXFLAGS, "-static");
 #endif
-
-        //cb_run("pkg-config --static --libs glfw3");
-
-      
     }
 
+    // Create .exe
     const char* ac_exe = cb_bake();
+
     if (!ac_exe)
     {
         exit(1);
@@ -163,15 +138,18 @@ const char* build_with(const char* config)
 
     /* Copy resources necessary at runtime. */
     const char* out = cb_get_output_directory(cb_current_project(), &tool_chain);
-    cb_try_copy_file_to_dir("./resources/Raleway-Medium.ttf", out);
     cb_try_copy_file_to_dir("./resources/dejavu-sans.book.ttf", out);
     cb_try_copy_file_to_dir("./resources/lucide.ttf", out);
     cb_try_copy_file_to_dir("./resources/tendril.ico", out);
     cb_try_copy_file_to_dir("./resources/TendrilisExtra-Regular.ttf", out);
     cb_try_copy_file_to_dir("./resources/Tendrilis-v2-Regular.ttf", out);
 
-    /* Launch app.exe */
+#ifndef CI
+
+    /* Launch .exe */
     cb_process_in_directory(ac_exe, out);
+
+#endif
 
     return ac_exe;
 }
