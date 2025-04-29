@@ -16,6 +16,24 @@ static td_rgba8 point_hover_color{ 180, 90, 180, 255 };
 static td_rgba8 background_grid_color{ 175, 175, 175, 255 };
 static td_rgba8 bitmap_buffer[TD_CANVAS_WIDTH * TD_CANVAS_HEIGHT];
 
+enum demo_type {
+	demo_type_TEXT_ON_LINE,
+	demo_type_TEXT_ON_POLYLINE,
+	demo_type_TEXT_ON_BEZIER_CURVE,
+
+	demo_type_TRIANGLE_ON_CURVE,
+	demo_type_TENDRILIS_ON_CURVE,
+	demo_type_DRAW_TENDRILIS_SPIRO,
+	demo_type_DRAW_TENDRILIS_OTHER,
+
+	demo_type_REGULAR_DEMO_COUNT,
+	demo_type_DEBUG_DEMO_START,
+	demo_type_RECT_ON_LINE,
+	demo_type_CURVE_ON_LINE,
+	demo_type_GRID_ON_BEZIER_CURVE,
+	demo_type_ALL_DEMO_COUNT
+};
+
 enum path_bender_flags
 {
 	path_bender_flags_NONE = 0,
@@ -164,6 +182,8 @@ static void point_to_path(const td_point_array& points, td_path* path);
 
 td_demo::td_demo()
 {
+	selected_demo = demo_type_TENDRILIS_ON_CURVE;
+
 	td_font_store::init_from_file(&regular_font, IMGUI_EXTENSION_TEXT_FONT, 0);
 	td_font_store::init_from_file(&tendrilis_font, "./TendrilisExtra-Regular.ttf", 0);
 	// Initialize bitmap with static buffer of rgba.
@@ -375,24 +395,6 @@ void td_demo::display_demo()
 	cfg.parameter_label_width = ImGui::CalcTextSize("XXXXXXXXXX").x;
 
 	bool reset_requested = false;
-
-	enum demo_type {
-		demo_type_TEXT_ON_LINE,
-		demo_type_TEXT_ON_POLYLINE,
-		demo_type_TEXT_ON_BEZIER_CURVE,
-		
-		demo_type_TRIANGLE_ON_CURVE,
-		demo_type_TENDRILIS_ON_CURVE,
-		demo_type_DRAW_TENDRILIS_SPIRO,
-		demo_type_DRAW_TENDRILIS_OTHER,
-
-		demo_type_REGULAR_DEMO_COUNT,
-		demo_type_DEBUG_DEMO_START,
-		demo_type_RECT_ON_LINE,
-		demo_type_CURVE_ON_LINE,
-		demo_type_GRID_ON_BEZIER_CURVE,
-		demo_type_ALL_DEMO_COUNT
-	};
 
 	static const char* ids[demo_type_ALL_DEMO_COUNT] = {
 		text_on_line.id,
