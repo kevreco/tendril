@@ -1,0 +1,177 @@
+#define CB_IMPLEMENTATION
+#include "cb/cb.h"
+#include "cb/cb_add_files.h"
+#include "cb/cb_assert.h"
+
+const char* root_dir = "./";
+
+/* Forward declarations */
+
+void assert_path(const char* path);
+void assert_process(const char* cmd);
+void assert_run(const char* exe);
+void build_generated_exe_and_run(const char* file);
+const char* build_with(const char* config);
+void my_project(const char* project_name, const char* toolchain, const char* config);
+
+int main()
+{
+    cb_init();
+
+    //build_with("Release");
+
+    cb_clear(); /* Clear all values of cb. */
+
+    const char* ac_exe = build_with("Debug");
+
+    cb_destroy();
+
+    return 0;
+}
+
+/* Shortcut to create a project with default config flags. */
+void my_project(const char* project_name, const char* toolchain, const char* config)
+{
+    cb_project(project_name);
+
+    cb_set_f(cb_OUTPUT_DIR, ".build/%s_%s/%s/", toolchain, config, project_name);
+
+    cb_bool is_debug = cb_str_equals(config, "Debug");
+
+    if (is_debug
+        /* @FIXME sanitize=address require clang with msvc*/
+        && (cb_str_equals(toolchain, "gcc"))
+        )
+    {
+        cb_add(cb_CXFLAGS, "-fsanitize=address"); /* Address sanitizer, same flag for gcc and msvc. */
+    }
+
+    if (cb_str_equals(toolchain, "msvc"))
+    {
+        cb_add(cb_CXFLAGS, "/Zi");   /* Produce debugging information (.pdb) */
+        cb_add(cb_CXFLAGS, "/EHsc"); /* Allow exception catching. */
+        
+        /* Use alternate location for the .pdb.
+           In this case it will be next to the .exe */
+        cb_add(cb_LFLAGS, "/pdbaltpath:%_PDB%"); 
+
+        cb_add(cb_DEFINES, "UNICODE");
+        cb_add(cb_DEFINES, "_UNICODE");
+            
+        if (is_debug)
+        {
+            cb_add(cb_LFLAGS, "/MANIFEST:EMBED");
+            cb_add(cb_LFLAGS, "/INCREMENTAL:NO"); /* No incremental linking */
+
+            cb_add(cb_CXFLAGS, "-Od");   /* Disable optimization */
+            cb_add(cb_DEFINES, "DEBUG"); /* Add DEBUG constant define */
+
+        }
+        else
+        {
+            cb_add(cb_CXFLAGS, "-O1");   /* Optimization level 1 */
+        }
+    }
+    else if (cb_str_equals(toolchain, "gcc"))
+    {
+        if (is_debug)
+        {
+            cb_add(cb_CXFLAGS, "-g");    /* Produce debugging information  */
+            cb_add(cb_CXFLAGS, "-p");    /* Profile compilation (in case of performance analysis)  */
+            cb_add(cb_CXFLAGS, "-O0");   /* Disable optimization */
+            cb_add(cb_DEFINES, "DEBUG"); /* Add DEBUG constant define */
+        }
+        else
+        {
+            cb_add(cb_CXFLAGS, "-O1");   /* Optimization level 1 */
+        }
+    }
+}
+
+const char* build_with(const char* config)
+{
+    cb_toolchain_set(cb_toolchain_default_cpp());
+
+    cb_toolchain_t tool_chain = cb_toolchain_get();
+    const char* toolchain_name = tool_chain.family;
+    
+    /* Library */
+    {
+        my_project("tendril", toolchain_name, config);
+
+        cb_set(cb_BINARY_TYPE, cb_STATIC_LIBRARY);
+        
+        cb_add(cb_FILES, "./src/tendril/build.cpp");
+        
+        //cb_add(cb_CXFLAGS, "-std=c++11");
+
+        cb_bake();
+    }
+    
+    /* App  */
+    {
+        my_project("app", toolchain_name, config);
+
+        cb_add(cb_LINK_PROJECTS, "tendril");
+
+        cb_set(cb_BINARY_TYPE, cb_EXE);
+
+        cb_add(cb_FILES, "./src/app/build.cpp");
+        
+        cb_add(cb_INCLUDE_DIRECTORIES, "./src/tendril/");
+        cb_add(cb_INCLUDE_DIRECTORIES, "./src/app/");
+        cb_add(cb_INCLUDE_DIRECTORIES, "./src/app/3rdparty");
+        cb_add(cb_INCLUDE_DIRECTORIES, "./src/app/3rdparty/imgui");
+        cb_add(cb_INCLUDE_DIRECTORIES, "./src/app/3rdparty/imgui/backends");
+#if _WIN32
+        cb_add(cb_LIBRARIES, "opengl32");
+#else
+        cb_add(cb_LIBRARIES, "GL");
+        cb_add(cb_LIBRARIES, "glfw");
+        cb_add(cb_LIBRARIES, "rt");
+        cb_add(cb_LIBRARIES, "m");
+        //cb_add(cb_LIBRARIES, "dl");
+
+        //cb_add(cb_CXFLAGS, "-std=c++11");
+        //glfw - lrt - lm - ldl
+        //cb_process_handle* process = cb_process_to_string("pkg-config --static --libs glfw3", NULL, 0);
+        //const char* libs = cb_tmp_str(cb_process_stdout_string(process));
+        //cb_process_end(process);
+        //
+        //process = cb_process_to_string("pkg-config --cflags glfw3", NULL, 0);
+        //const char* flags = cb_tmp_str(cb_process_stdout_string(process));
+        //cb_process_end(process);
+
+        //fprintf(stderr, "glfw3 LIBS: %s", libs);
+        //fprintf(stderr, "glfw3 FLAGS: %s", flags);
+        //cb_add(cb_LIBRARIES, libs);
+        //cb_add(cb_CXFLAGS, flags);
+        
+        //cb_add(cb_CXFLAGS, "-static");
+#endif
+
+        //cb_run("pkg-config --static --libs glfw3");
+
+      
+    }
+
+    const char* ac_exe = cb_bake();
+    if (!ac_exe)
+    {
+        exit(1);
+    }
+
+    /* Copy resources necessary at runtime. */
+    const char* out = cb_get_output_directory(cb_current_project(), &tool_chain);
+    cb_try_copy_file_to_dir("./resources/Raleway-Medium.ttf", out);
+    cb_try_copy_file_to_dir("./resources/dejavu-sans.book.ttf", out);
+    cb_try_copy_file_to_dir("./resources/lucide.ttf", out);
+    cb_try_copy_file_to_dir("./resources/tendril.ico", out);
+    cb_try_copy_file_to_dir("./resources/TendrilisExtra-Regular.ttf", out);
+    cb_try_copy_file_to_dir("./resources/Tendrilis-v2-Regular.ttf", out);
+
+    /* Launch app.exe */
+    cb_process_in_directory(ac_exe, out);
+
+    return ac_exe;
+}

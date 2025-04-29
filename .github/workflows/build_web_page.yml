@@ -1,0 +1,54 @@
+name: build_web_page
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  build-page:
+    runs-on: ubuntu-latest
+    container:
+      image: emscripten/emsdk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      # Check version of Emscripten SDK.
+      - name: Check emsdk
+        run: emcc -v
+      # Build artifact for web pages.
+      - name: build
+        shell: bash
+        # build .wasm with make, then move everything in the static-file/ folder.
+        run: |
+          make
+          ls
+          cp imgui.data ./webpage/imgui.data
+          cp imgui.js ./webpage/imgui.js
+          cp imgui.wasm ./webpage/imgui.wasm
+      - name: Upload static files
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./webpage/
+
+  deploy-page:
+
+    needs: build-page
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Specify runner + deployment step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 

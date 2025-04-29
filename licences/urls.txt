@@ -1,0 +1,31 @@
+
+Canvas-ity:
+
+https://github.com/a-e-k/canvas_ity
+
+Dear ImGui:
+https://github.com/ocornut/imgui
+
+Free Type
+https://gitlab.freedesktop.org/freetype/freetype
+
+Hobby curves:
+
+https://www.jakelow.com/blog/hobby-curves
+
+IconFontCppHeaders:
+
+https://github.com/juliettef/IconFontCppHeaders
+
+Lucide icons:
+
+https://github.com/lucide-icons/lucide
+
+Spiro:
+
+https://github.com/raphlinus/spiro
+
+Tendrilis font:
+
+https://anomalis.gumroad.com/l/tendrilis-guide
+
