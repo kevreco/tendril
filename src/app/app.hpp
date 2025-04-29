@@ -100,15 +100,15 @@ enum td_curve_edit_state
 
 struct td_demo
 {
-    struct {
-        float parameter_label_width = 120.0f;
-    } cfg;
-
     enum td_font_type
     {
         td_font_type_REGULAR,
         td_font_type_TENDRILIS
     };
+
+    struct {
+        float parameter_label_width = 120.0f;
+    } cfg;
 
     td_font_store regular_font;
     td_font_store tendrilis_font;
@@ -122,6 +122,20 @@ struct td_demo
     bool edit_path_points = true;
     td_vec2 display_point_size = td_vec2{ 8.0f, 8.0f };
     td_vec2 grab_point_size = td_vec2{ 11.0f, 11.0f };
+
+    int selected_demo = 0;
+    char svg_file_name[128] = "path.svg";
+
+    struct td_bitmap
+    {
+        td_rgba8* data;
+        int width;
+        int height;
+    };
+
+    td_bitmap bitmap;
+    td_rasterizer rasterizer;
+    texture_handle texture = app_backend::invalid_texture_handle();
 
     struct {
         int font_type = td_font_type_REGULAR;
@@ -211,20 +225,6 @@ struct td_demo
         td_path target;
         td_path path;
     } grid_on_bezier_curve;
-
-    int selected_demo = 0;
-    char svg_file_name[128] = "path.svg";
-
-    struct td_bitmap
-    {
-        td_rgba8* data;
-        int width;
-        int height;
-    };
-
-    td_bitmap bitmap;
-    td_rasterizer rasterizer;
-    texture_handle texture = app_backend::invalid_texture_handle();
 
     td_demo();
     ~td_demo();
