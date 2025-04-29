@@ -34,8 +34,11 @@ typedef unsigned int texture_handle;
 
 struct app_backend
 {
+#if DEBUG
     bool show_imgui_demo = true;
-
+#else
+    bool show_imgui_demo = false;
+#endif
     int initial_x = 100;
     int initial_y = 100;
     int initial_width = 720;
