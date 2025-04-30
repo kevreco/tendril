@@ -19,7 +19,7 @@ static td_rgba8 bitmap_buffer[TD_CANVAS_WIDTH * TD_CANVAS_HEIGHT];
 enum demo_type {
 	demo_type_TEXT_ON_LINE,
 	demo_type_TEXT_ON_POLYLINE,
-	demo_type_TEXT_ON_BEZIER_CURVE,
+	demo_type_TEXT_ON_CURVE,
 
 	demo_type_TRIANGLE_ON_CURVE,
 	demo_type_TENDRILIS_ON_CURVE,
@@ -30,7 +30,8 @@ enum demo_type {
 	demo_type_DEBUG_DEMO_START,
 	demo_type_RECT_ON_LINE,
 	demo_type_CURVE_ON_LINE,
-	demo_type_GRID_ON_BEZIER_CURVE,
+	demo_type_VBARS_ON_CURVE,
+	demo_type_HBARS_ON_CURVE,
 	demo_type_ALL_DEMO_COUNT
 };
 
@@ -188,52 +189,45 @@ td_demo::td_demo()
 	td_font_store::init_from_file(&tendrilis_font, "./TendrilisExtra-Regular.ttf", 0);
 	// Initialize bitmap with static buffer of rgba.
 	bitmap = td_bitmap{ bitmap_buffer, TD_CANVAS_WIDTH , TD_CANVAS_HEIGHT };
+	
+	// Line reused for various demo.
+	td_path directive_line;
+	directive_line.move_to(td_vec2{ 0.10f,        1.0f / 2.0f });
+	directive_line.line_to(td_vec2{ 1.0f - 0.10f,  1.0f / 2.0f });
 
-	td_vec2 shorten_canvas_size = canvas_size;
-	shorten_canvas_size.x *= 0.75f;
+	td::elements_multiply(&directive_line, canvas_size);
+
+	// Curve reused for various demo.
+	td_path directive_curve;
+	directive_curve.move_to(td_vec2{ 0.20f, 0.60f });
+	directive_curve.cubic_to(td_vec2{ 0.35f, 0.4f }, td_vec2{ 0.65f, 0.4f }, td_vec2{ 0.8f, 0.6f });
+
+	td::elements_multiply(&directive_curve, canvas_size);
 
 	// Text on line
 	{
-		td_path line;
-		line.move_to(td_vec2{ 0.10f,        1.0f / 2.0f });
-		line.line_to(td_vec2{ 1.0f - 0.10f, 1.0f / 2.0f });
-
-		td::elements_multiply(&line, shorten_canvas_size);
-
-		text_on_line.path = line;
+		text_on_line.path = directive_line;
 	}
 
 	// Text on polyline
 	{
-		td_path line;
-		line.move_to(td_vec2{ 0.10f,        1.0f / 2.0f });
-		line.line_to(td_vec2{ 0.5f,         1.0f / 3.0f });
-		line.line_to(td_vec2{ 1.0f - 0.10f,  1.0f / 2.0f });
+		td_path polyline;
+		polyline.move_to(td_vec2{ 0.10f,        1.0f / 2.0f });
+		polyline.line_to(td_vec2{ 0.5f,         1.0f / 3.0f });
+		polyline.line_to(td_vec2{ 1.0f - 0.10f,  1.0f / 2.0f });
 
-		td::elements_multiply(&line, shorten_canvas_size);
+		td::elements_multiply(&polyline, canvas_size);
 
-		text_on_polyline.path = line;
+		text_on_polyline.path = polyline;
 	}
 
-	// Text on bezier curve
+	// Text on curve
 	{
-		td_path curve;
-		curve.move_to(td_vec2{ 0.15f, 0.50f });
-		curve.cubic_to(td_vec2{ 0.15f + 0.15f, 0.35f }, td_vec2{ 1.0f - 0.15f - 0.15f, 0.35f }, td_vec2{ 1.0f - 0.15f, 0.50f });
-
-		td::elements_multiply(&curve, shorten_canvas_size);
-
-		text_on_bezier_curve.path = curve;
+		text_on_curve.path = directive_curve;
 	}
-
 
 	// Triangle on curve
 	{
-		
-		td_path curve;
-		curve.move_to(td_vec2{ 0.15f, 0.50f });
-		curve.cubic_to(td_vec2{ 0.15f + 0.15f, 0.35f }, td_vec2{ 1.0f - 0.15f - 0.15f, 0.35f }, td_vec2{ 1.0f - 0.15f, 0.50f });
-
 		td_path triangle;
 		triangle.move_to(td_vec2{ 0.0f, 0.5f });
 		triangle.line_to(td_vec2{ 1.0f, 0.0f });
@@ -242,10 +236,7 @@ td_demo::td_demo()
 
 		triangle_on_curve.target = triangle;
 
-		td::elements_multiply(&curve, shorten_canvas_size);
-
-		triangle_on_curve.path = curve;
-
+		triangle_on_curve.path = directive_curve;
 	}
 
 	// Tendrilis on curve
@@ -267,6 +258,7 @@ td_demo::td_demo()
 			draw_tendrilis_spiro.points.push_back({});
 		}
 	}
+
 	// Draw tendrilis (other)
 	{
 		if (draw_tendrilis_other.edit_state == td_curve_edit_state_EDIT)
@@ -275,6 +267,7 @@ td_demo::td_demo()
 			draw_tendrilis_other.points.push_back({});
 		}
 	}
+
 	//
 	// DEBUG
 	//
@@ -282,22 +275,13 @@ td_demo::td_demo()
 	// Rect on line
 	{
 		td_path rect;
-		rect.move_to(td_vec2{ 0.0f, 0.0f });
-		rect.line_to(td_vec2{ 1.0f, 0.0f });
-		rect.line_to(td_vec2{ 1.0f, 1.0f });
-		rect.line_to(td_vec2{ 0.0f, 1.0f });
-		rect.close();
+		rect.add_rect(0.0f, 0.0f, 1.0f, 1.0f);
+
 		td::elements_multiply(&rect, td_vec2(1.0f, -1.0f));
 		td::elements_multiply(&rect, td_vec2(100.f, 100.0f));
 
-		td_path line;
-		line.move_to(td_vec2{ 0.10f,        1.0f / 2.0f });
-		line.line_to(td_vec2{ 1.0f - 0.10f,  1.0f / 2.0f });
-
-		td::elements_multiply(&line, shorten_canvas_size);
-
 		rect_on_line.target = rect;
-		rect_on_line.path = line;
+		rect_on_line.path = directive_line;
 	}
 
 	// Curve on line
@@ -315,13 +299,15 @@ td_demo::td_demo()
 		line.move_to(td_vec2{ 0.10f,        1.0f / 2.0f });
 		line.line_to(td_vec2{ 1.0f - 0.10f,  1.0f / 2.0f });
 
-		td::elements_multiply(&line, shorten_canvas_size);
+		td::elements_multiply(&line, canvas_size);
+
+		curve_on_line.path = line;
 
 		curve_on_line.target = curve;
-		curve_on_line.path = line;
+
 	}
 
-	// Grid on bezier curve
+	// Vertical bars on curve
 	{
 
 		td_path curve;
@@ -334,23 +320,34 @@ td_demo::td_demo()
 		{
 			if (i % 2)
 			{
-				bars.move_to(td_vec2{ 0.1f * i, 0.0f });
-				bars.line_to(td_vec2{ 0.1f * i + 0.1f, 0.0f });
-
-				bars.line_to(td_vec2{ 0.1f * i + 0.1f, 1.0f });
-				bars.line_to(td_vec2{ 0.1f * i, 1.0f });
-				bars.close();
+				bars.add_rect(td_vec2{ 0.1f * i, 0.0f }, td_vec2{ 0.1f * i + 0.1f, 1.0f } );
 			}
 		}
 
-		td_path target_curve = bars;
+		td::elements_multiply(&bars, td_vec2(1.0f, -1.0f));
+		td::elements_multiply(&bars, td_vec2(100.f, 100.0f));
 
-		td::elements_multiply(&target_curve, td_vec2(1.0f, -1.0f));
-		td::elements_multiply(&target_curve, td_vec2(100.f, 100.0f));
+		directive_curve.clone_to(&vbars_on_curve.path);
+		vbars_on_curve.target = bars;
+	}
 
-		td::elements_multiply(&curve, shorten_canvas_size);
-		grid_on_bezier_curve.path = curve;
-		grid_on_bezier_curve.target = target_curve;
+	// Horizontal bars on curve
+	{
+		td_path bars;
+
+		for (int i = 0; i < 10; i += 1)
+		{
+			if (i % 2)
+			{
+				bars.add_rect(td_vec2{ 0.0f , 0.1f * i, }, td_vec2{ 1.0f, 0.1f * i + 0.1f, });
+			}
+		}
+
+		td::elements_multiply(&bars, td_vec2(1.0f, -1.0f));
+		td::elements_multiply(&bars, td_vec2(100.f, 100.0f));
+
+		hbars_on_curve.path = directive_curve;
+		hbars_on_curve.target = bars;
 	}
 }
 
@@ -399,7 +396,7 @@ void td_demo::display_demo()
 	static const char* ids[demo_type_ALL_DEMO_COUNT] = {
 		text_on_line.id,
 		text_on_polyline.id,
-		text_on_bezier_curve.id,
+		text_on_curve.id,
 
 		triangle_on_curve.id,
 		tendrilis_on_curve.id,
@@ -409,7 +406,8 @@ void td_demo::display_demo()
 		"demo_type_DEBUG_DEMO_START",
 		rect_on_line.id,
 		curve_on_line.id,
-		grid_on_bezier_curve.id,
+		vbars_on_curve.id,
+		hbars_on_curve.id,
 	};
 
 	path_bender bender;
@@ -560,24 +558,24 @@ void td_demo::display_demo()
 			display_font_combox("Font: ", label_margin, &text_on_polyline.font_type);
 			break;
 		}
-		case demo_type_TEXT_ON_BEZIER_CURVE:
+		case demo_type_TEXT_ON_CURVE:
 		{
-			td_font_store* font = get_font(text_on_bezier_curve.font_type);
+			td_font_store* font = get_font(text_on_curve.font_type);
 
-			text_on_bezier_curve.target.clear();
-			td::insert_text_to_path(font, text_on_bezier_curve.text.data(), td_vec2(), text_on_bezier_curve.font_size, &text_on_bezier_curve.target);
+			text_on_curve.target.clear();
+			td::insert_text_to_path(font, text_on_curve.text.data(), td_vec2(), text_on_curve.font_size, &text_on_curve.target);
 
-			td_path* path = apply_various_effect(&text_on_bezier_curve.path);
+			td_path* path = apply_various_effect(&text_on_curve.path);
 
-			bender.set(text_on_bezier_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
+			bender.set(text_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas(&bender, to_id(text_on_bezier_curve.id), &text_on_bezier_curve.path.points);
+			display_canvas(&bender, to_id(text_on_curve.id), &text_on_curve.path.points);
 
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
-			ImGui::Text("Text");   ImGui::SameLine(label_margin);  ImGui::InputText("##Text", &text_on_bezier_curve.text);
-			ImGui::Text("Font size");  ImGui::SameLine(label_margin);  ImGui::SliderFloat("##Font size", &text_on_bezier_curve.font_size, 10, max_font_size);
-			display_font_combox("Font: ", label_margin, &text_on_bezier_curve.font_type);
+			ImGui::Text("Text");   ImGui::SameLine(label_margin);  ImGui::InputText("##Text", &text_on_curve.text);
+			ImGui::Text("Font size");  ImGui::SameLine(label_margin);  ImGui::SliderFloat("##Font size", &text_on_curve.font_size, 10, max_font_size);
+			display_font_combox("Font: ", label_margin, &text_on_curve.font_type);
 			break;
 		}
 		
@@ -768,14 +766,24 @@ void td_demo::display_demo()
 			display_canvas(&bender, to_id(curve_on_line.id), &curve_on_line.path.points);
 			break;
 		}
-		case demo_type_GRID_ON_BEZIER_CURVE: {
+		case demo_type_VBARS_ON_CURVE: {
 
-			td_path* path = apply_various_effect(&grid_on_bezier_curve.path);
+			td_path* path = apply_various_effect(&vbars_on_curve.path);
 
 			bool smooth = true;
-			bender.set(grid_on_bezier_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
+			bender.set(vbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas(&bender, to_id(grid_on_bezier_curve.id), &grid_on_bezier_curve.path.points);
+			display_canvas(&bender, to_id(vbars_on_curve.id), &vbars_on_curve.path.points);
+			break;
+		}
+		case demo_type_HBARS_ON_CURVE: {
+
+			td_path* path = apply_various_effect(&hbars_on_curve.path);
+
+			bool smooth = true;
+			bender.set(hbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
+
+			display_canvas(&bender, to_id(hbars_on_curve.id), &hbars_on_curve.path.points);
 			break;
 		}
 		}

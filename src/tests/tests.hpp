@@ -376,21 +376,19 @@ namespace td
 				}
 			}
 
-			// @TODO
-			// Fragment of length of 2.0f, starting at 0.5.
+			// Fragment a closed shape
 			{
 
 				td_path path;
-				path.move_to(0.0f, 0.0f);
-				path.line_to(1.0f, 0.0f);
-				path.line_to(1.0f, 1.0f);
-				path.line_to(0.0f, 1.0f);
-				path.close();
+				path.add_rect(0.0f, 0.0f, 100.0f, 10.0f);
 
 				td_path fragmented_path;
 
-				td::to_fragmented_path(path, &fragmented_path, 1.0f);
+				td::to_fragmented_path(path, &fragmented_path, 10.0f);
 
+				
+				// Divide each side of the rect by two
+				TD_ASSERT(fragmented_path.points.size() == 23);
 
 				TD_ASSERT(path.cmds.back() == td_path_cmd_CLOSE);
 				TD_ASSERT(path.points.back() == path.points.front());

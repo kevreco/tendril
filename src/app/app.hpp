@@ -150,7 +150,7 @@ struct td_demo
         int font_type = td_font_type_REGULAR;
         const char* id = "Text on polyline";
         std::string text = "Hello World";
-        float font_size = 57.5f;
+        float font_size = 75.0f;
         td_path target;
         td_path path;
     } text_on_polyline;
@@ -162,7 +162,7 @@ struct td_demo
         float font_size = 45.0f;
         td_path target;
         td_path path;
-    } text_on_bezier_curve;
+    } text_on_curve;
 
     struct {
        
@@ -220,11 +220,18 @@ struct td_demo
     } curve_on_line;
 
     struct {
-        const char* id = "Grid on bezier curve";
+        const char* id = "Vertical bars on curve";
         float font_size = 30.0f;
         td_path target;
         td_path path;
-    } grid_on_bezier_curve;
+    } vbars_on_curve;
+
+    struct {
+        const char* id = "Horizontal bars on curve";
+        float font_size = 30.0f;
+        td_path target;
+        td_path path;
+    } hbars_on_curve;
 
     td_demo();
     ~td_demo();

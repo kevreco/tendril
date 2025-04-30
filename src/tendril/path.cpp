@@ -86,7 +86,6 @@ void td_path::add_rect(float min_x, float min_y, float max_x, float max_y)
     line_to(max_x, min_y);
     line_to(max_x, max_y);
     line_to(min_x, max_y);
-    line_to(min_x, min_y);
     close();
 }
 
