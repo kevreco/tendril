@@ -392,7 +392,7 @@ void td_demo::display_canvas_background(const td_vec2& scrolling)
 
 void td_demo::display_demo()
 {
-	cfg.parameter_label_width = ImGui::CalcTextSize("XXXXXXXXXX").x;
+	cfg.parameter_label_width = ImGui::CalcTextSize("XXXXXXXXXXX").x;
 
 	bool reset_requested = false;
 
@@ -441,53 +441,26 @@ void td_demo::display_demo()
 		{
 			if (ImGui::CollapsingHeader("Demos", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				if (ImGui::BeginTable("##DemoList", 1, ImGuiTableFlags_RowBg))
+				if (ImGui::BeginChild("##DemoList", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AutoResizeY))
 				{
 					for (int i = 0; i < demo_type_REGULAR_DEMO_COUNT; i += 1)
 					{
-						ImGui::TableNextRow();
-						ImGui::TableNextColumn();
-
-						bool selected = false;
-						char selected_label[64];
-						snprintf(selected_label, sizeof(selected_label), "##%d", i);
-						ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SpanAllColumns;
-						if (ImGui::Selectable(selected_label, &selected, selectable_flags, ImVec2(0, 20)))
-						{
-							selected_demo = i;
-
-						}
-						ImGui::SameLine();
 						ImGui::RadioButton(ids[i], &selected_demo, i);
 					}
-
-					ImGui::EndTable();
+					ImGui::EndChild();
 				}
 			}
 
 			if (ImGui::CollapsingHeader("Debug demos"))
 			{
-				if (ImGui::BeginTable("##DebugDemoList", 1, ImGuiTableFlags_RowBg))
+				if (ImGui::BeginChild("##DebugDemoList", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AutoResizeY))
 				{
 					for (int i = demo_type_DEBUG_DEMO_START + 1; i < demo_type_ALL_DEMO_COUNT; i += 1)
 					{
-						ImGui::TableNextRow();
-						ImGui::TableNextColumn();
-
-						bool selected = false;
-						char selected_label[64];
-						snprintf(selected_label, sizeof(selected_label), "##%d", i);
-						ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SpanAllColumns;
-						if (ImGui::Selectable(selected_label, &selected, selectable_flags, ImVec2(0, 20)))
-						{
-							selected_demo = i;
-
-						}
-						ImGui::SameLine();
 						ImGui::RadioButton(ids[i], &selected_demo, i);
 					}
 
-					ImGui::EndTable();
+					ImGui::EndChild();
 				}
 			}
 
