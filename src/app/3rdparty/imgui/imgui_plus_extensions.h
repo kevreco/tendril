@@ -269,9 +269,14 @@ namespace ImGui {
 		return  vec3(a.x + b.x, a.y + b.y, a.z + b.z);
 	}
 
-	ImVec4 rgba_to_vec4(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+	ImVec4 rgba8_to_vec4(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 	{
 		return ColorConvertU32ToFloat4(IM_COL32(r, g, b, a));
+	}
+
+	ImVec4 vec4_with_alpha(ImVec4 v, float alpha)
+	{
+		return ImVec4{ v.x, v.y, v.z, alpha};
 	}
 
     inline void ApplyCustomTheme()
@@ -299,9 +304,9 @@ namespace ImGui {
 		(void)main_alpha_50;
 		auto main_alpha_70 = 0.70f;
 		
-		auto window_background = rgba_to_vec4(44, 47, 58, 240);
-		auto check_mark_and_slider_grab = rgba_to_vec4(129, 170, 214, 255);
-		auto background = to_vec3(0.263f, 0.298f, 0.369f);  // "Polar Night" (grayish)
+		auto window_background = rgba8_to_vec4(44, 47, 58, 240);
+		auto check_mark_and_slider_grab = rgba8_to_vec4(121, 158, 200, 255);
+		auto background = to_vec3(0.263f, 0.298f, 0.369f);  // "Polar Night" (grayish, slightly blue)
 		auto background2 = to_vec3(0.369f, 0.506f, 0.675f);
 		auto gray = to_vec3(0.263f, 0.298f, 0.369f);
 		auto gray_05 = vec3_plus_vec3(gray, to_vec3(0.05f, 0.05f, 0.05f));
@@ -315,27 +320,27 @@ namespace ImGui {
 		colors[ImGuiCol_PopupBg] = to_vec4(background, 0.94f);
 		colors[ImGuiCol_Border] = to_vec4(vec3_lerp(main_green, gray, 0.40f));
 		colors[ImGuiCol_BorderShadow] = to_vec4(vec3_lerp(main_green, gray, 0.10f));
-		colors[ImGuiCol_Button] = to_vec4(main, 110.0f / 255.0f);
-		colors[ImGuiCol_ButtonHovered] = to_vec4(main, main_alpha_70);
-		colors[ImGuiCol_ButtonActive] = to_vec4(main, main_alpha_35);
-		colors[ImGuiCol_FrameBg] = to_vec4(background2, 0.54f);
-		colors[ImGuiCol_FrameBgHovered] = colors[ImGuiCol_ButtonHovered];
-		colors[ImGuiCol_FrameBgActive] = colors[ImGuiCol_ButtonActive];
+		colors[ImGuiCol_Button] = rgba8_to_vec4(113, 149, 158, 102);
+		colors[ImGuiCol_ButtonHovered] = rgba8_to_vec4(103, 129, 135, 255);
+		colors[ImGuiCol_ButtonActive] = rgba8_to_vec4(88, 109, 120, 255);
+		colors[ImGuiCol_FrameBg] = rgba8_to_vec4(70, 85, 110, 138);
+		colors[ImGuiCol_FrameBgHovered] = rgba8_to_vec4(122, 172, 228, 109);
+		colors[ImGuiCol_FrameBgActive] = rgba8_to_vec4(116, 162, 215, 171);
 		colors[ImGuiCol_TitleBg] = to_vec4(gray_05, 1.00f);
 		colors[ImGuiCol_TitleBgActive] = to_vec4(background2, 1.00f);
 		colors[ImGuiCol_TitleBgCollapsed] = to_vec4(gray_05, 0.51f);
 		colors[ImGuiCol_MenuBarBg] = to_vec4(gray_10, 1.0f);
 		colors[ImGuiCol_ScrollbarBg] = to_vec4(vec3_lerp(background, offWhite, 0.08f), 0.53f);
-		colors[ImGuiCol_ScrollbarGrab] = to_vec4(vec3_lerp(background2, gray_05, 0.05f), 1.00f);
-		colors[ImGuiCol_ScrollbarGrabHovered] = to_vec4(vec3_lerp(background2, offWhite, 0.30f), 1.00f);
-		colors[ImGuiCol_ScrollbarGrabActive] = to_vec4(vec3_lerp(background2, offWhite, 0.15f), 1.00f);
+		colors[ImGuiCol_ScrollbarGrab] = rgba8_to_vec4(109, 142, 180, 255);
+		colors[ImGuiCol_ScrollbarGrabHovered] = rgba8_to_vec4(133, 159, 190, 255);
+		colors[ImGuiCol_ScrollbarGrabActive] = rgba8_to_vec4(101, 127, 160, 255);
 		colors[ImGuiCol_CheckMark] = check_mark_and_slider_grab;
 		colors[ImGuiCol_SliderGrab] = check_mark_and_slider_grab;
-		colors[ImGuiCol_SliderGrabActive] = colors[ImGuiCol_TitleBgActive];
+		colors[ImGuiCol_SliderGrabActive] = rgba8_to_vec4(140, 167, 200, 255);
 
-		colors[ImGuiCol_Header] = colors[ImGuiCol_Button];
-		colors[ImGuiCol_HeaderHovered] = colors[ImGuiCol_ButtonHovered];
-		colors[ImGuiCol_HeaderActive] = colors[ImGuiCol_ButtonActive];
+		colors[ImGuiCol_Header] = vec4_with_alpha(colors[ImGuiCol_Button], 85.0f / 255.0f);
+		colors[ImGuiCol_HeaderHovered] = vec4_with_alpha(colors[ImGuiCol_ButtonHovered], 200.0f / 255.0f);
+		colors[ImGuiCol_HeaderActive] = vec4_with_alpha(colors[ImGuiCol_ButtonActive], 1.0f);
 		colors[ImGuiCol_Separator] = colors[ImGuiCol_Button];
 		colors[ImGuiCol_SeparatorHovered] = colors[ImGuiCol_ButtonHovered];
 		colors[ImGuiCol_SeparatorActive] = colors[ImGuiCol_ButtonActive];
@@ -344,9 +349,9 @@ namespace ImGui {
 		colors[ImGuiCol_ResizeGripActive] = colors[ImGuiCol_ScrollbarGrabActive];
 
 		// Tab
-		colors[ImGuiCol_Tab] = colors[ImGuiCol_Button];
-		colors[ImGuiCol_TabHovered] = colors[ImGuiCol_ButtonHovered];
-		colors[ImGuiCol_TabActive] = colors[ImGuiCol_ButtonActive];
+		colors[ImGuiCol_Tab] = rgba8_to_vec4(76, 95, 105, 255);
+		colors[ImGuiCol_TabHovered] = rgba8_to_vec4(125, 161, 166, 220);
+		colors[ImGuiCol_TabActive] = rgba8_to_vec4(91, 117, 126, 255);
 		//colors[ImGuiCol_TabUnfocused] = vec4_lerp(colors[ImGuiCol_Tab], colors[ImGuiCol_TitleBg], 0.80f);
 		//colors[ImGuiCol_TabUnfocusedActive] = vec4_lerp(colors[ImGuiCol_TabActive], colors[ImGuiCol_TitleBg], 0.40f);
 
