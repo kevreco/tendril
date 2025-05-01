@@ -61,22 +61,21 @@ void td_app::display_about_window(bool* p_open)
     {
         ImGui::Text(TD_APP_NAME);
         ImGui::Text("Version: %s (%d)", TD_APP_VERSION_TEXT, TD_APP_VERSION_NUMBER);
-        ImGui::TextLinkOpenURL("Homepage", "https://github.com/kevreco/tendril");
-        ImGui::SameLine();
         ImGui::Separator();
         ImGui::Text("(c) kevreco");
         ImGui::Text("Developed by kevreco.");
         ImGui::Text("%s is licensed under the MIT License", TD_APP_NAME);
+        ImGui::Separator();
         {
-            ImGui::Text("See");
+            ImGui::TextLinkOpenURL("Homepage", "https://github.com/kevreco/tendril");
             ImGui::SameLine();
-            ImGui::TextLinkOpenURL("LICENSE", "https://github.com/kevreco/tendril/LICENSE");
-            ImGui::SameLine();
-            ImGui::Text("and");
+            ImGui::Text("-");
             ImGui::SameLine();
             ImGui::TextLinkOpenURL("README.md", "https://github.com/kevreco/tendril/README.md");
             ImGui::SameLine();
-            ImGui::Text("for more information.");
+            ImGui::Text("-");
+            ImGui::SameLine();
+            ImGui::TextLinkOpenURL("LICENSE", "https://github.com/kevreco/tendril/LICENSE");
         }
         ImGui::Separator();
         ImGui::Text("Backend: %s", identifier());
