@@ -23,7 +23,7 @@ jobs:
         shell: bash
         # build .wasm with make, then move everything in the static-file/ folder.
         run: |
-          make
+          make SOURCE_REVISION=${GITHUB_SHA}
           ls
           cp imgui.data ./webpage/imgui.data
           cp imgui.js ./webpage/imgui.js

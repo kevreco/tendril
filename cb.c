@@ -3,6 +3,9 @@
 #include "cb/cb_add_files.h"
 #include "cb/cb_assert.h"
 
+#define XSTR(x) STR(x)
+#define STR(x) #x
+     
 /* Forward declarations */
 
 void assert_path(const char* path);
@@ -18,7 +21,7 @@ int main()
 
     build_with("Debug");
     
-#ifdef CI
+#ifdef CI_BUILD
     cb_clear(); /* Clear all values of cb. */
 
     build_with("Release");
@@ -35,6 +38,10 @@ void my_project(const char* project_name, const char* toolchain, const char* con
     cb_project(project_name);
 
     cb_set_f(cb_OUTPUT_DIR, ".build/%s_%s/%s/", toolchain, config, project_name);
+
+#ifdef SOURCE_REVISION
+    cb_add_f(cb_DEFINES, "SOURCE_REVISION=%d", XSTR(SOURCE_REVISION));
+#endif
 
     cb_bool is_debug = cb_str_equals(config, "Debug");
 

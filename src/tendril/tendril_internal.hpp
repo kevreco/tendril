@@ -14,11 +14,13 @@
 //      td_codepoint_iterator
 //    byte operations
 
+#ifndef TD_TENDRIL_INTERNAL_HPP
+#define TD_TENDRIL_INTERNAL_HPP
 
 #include <cstdint> // uint32_t
 
-#ifndef TD_TENDRIL_INTERNAL_HPP
-#define TD_TENDRIL_INTERNAL_HPP
+#define TD_XSTR(x) TD_STR(x)
+#define TD_STR(x) #x
 
 #define td_fabs(x)     fabsf(x)
 #define td_sqrt(x)     sqrtf(x)
