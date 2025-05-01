@@ -86,8 +86,18 @@ struct app_backend
 
 struct td_app : app_backend {
 
+    // Config
+    struct {
+        bool show_demo_window = true;
+        bool show_about_window = false;
+    } cfg;
+
     td_app();
 	~td_app();
+
+    void render();
+    void display_main_menu_bar();
+    void display_about_window(bool* p_open);
 };
 
 struct path_bender;
