@@ -622,11 +622,11 @@ struct td_path {
 
     void move_to(float x, float y);
 
-    void move_to(td_vec2 p);
+    void move_to(const td_vec2& p);
 
     void line_to(float x, float y);
 
-    void line_to(td_vec2 p);
+    void line_to(const td_vec2& p);
 
     void quad_to(float x1, float y1, float x2, float y2);
 
@@ -634,11 +634,11 @@ struct td_path {
 
     void cubic_to(float x1, float y1, float x2, float y2, float x3, float y3);
 
-    void cubic_to(td_vec2 p1, td_vec2 p2, td_vec2 p3);
+    void cubic_to(const td_vec2& p1, const td_vec2& p2, const td_vec2& p3);
     
     void add_rect(float min_x, float min_y, float max_x, float max_y);
 
-    void add_rect(td_vec2 min, td_vec2 max);
+    void add_rect(const td_vec2& min, const td_vec2& max);
 
     void arc(float cx, float cy, float px, float py, float qx, float qy, float start_angle, float angle_sweep);
     

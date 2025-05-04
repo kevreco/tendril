@@ -12,6 +12,7 @@
 //    td::elements_sum
 //    td::elements_multiply
 // 
+
 // ============================================================================
 // td_path
 // ============================================================================
@@ -41,7 +42,7 @@ void td_path::move_to(float x, float y)
     point_anchor_index = points.size() - 1;
 }
 
-void td_path::move_to(td_vec2 p)
+void td_path::move_to(const td_vec2& p)
 {
     move_to(p.x, p.y);
 }
@@ -57,7 +58,7 @@ void td_path::line_to(float x, float y)
     p[0] = td_vec2(x, y);
 }
 
-void td_path::line_to(td_vec2 p)
+void td_path::line_to(const td_vec2& p)
 {
     line_to(p.x, p.y);
 }
@@ -105,7 +106,7 @@ void td_path::cubic_to(float x1, float y1, float x2, float y2, float x3, float y
     points[2] = td_vec2(x3, y3);
 }
 
-void td_path::cubic_to(td_vec2 p1, td_vec2 p2, td_vec2 p3)
+void td_path::cubic_to(const td_vec2& p1, const td_vec2& p2, const td_vec2& p3)
 {
     cubic_to(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
 }
@@ -130,7 +131,7 @@ void td_path::close()
     p[0] = points[point_anchor_index];
 }
 
-void td_path::add_rect(td_vec2 min, td_vec2 max)
+void td_path::add_rect(const td_vec2& min, const td_vec2& max)
 {
     add_rect(min.x, min.y, max.x, max.y);
 }
