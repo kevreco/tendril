@@ -371,16 +371,16 @@ void td_demo::display_options()
 
 	ImGui::SeparatorText("Path"); // ===
 
-	ImGui::Checkbox("Show Path", &show_path);
-	ImGui::Checkbox("Edit Path Points", &edit_path_points);
+	ImGui::Checkbox("Show Path", &cfg.show_path);
+	ImGui::Checkbox("Edit Path Points", &cfg.edit_path_points);
 	ImGui::SetNextItemWidth(item_width);
-	ImGui::InputFloat("Path Offset", &path_offset, 1.0f);
+	ImGui::InputFloat("Path Offset", &cfg.path_offset, 1.0f);
 
 	ImGui::SeparatorText("Normal"); // ===
 
-	ImGui::Checkbox("Show Normals of Path", &show_normals);
+	ImGui::Checkbox("Show Normals of Path", &cfg.show_normals);
 	ImGui::SetNextItemWidth(item_width);
-	ImGui::InputFloat("Normal Scale", &normal_scale, 5.0f);
+	ImGui::InputFloat("Normal Scale", &cfg.normal_scale, 5.0f);
 
 	ImGui::SeparatorText("Background"); // ===
 
@@ -892,9 +892,9 @@ td_demo::canvas_mouse_state td_demo::display_canvas(const td_path& target_path, 
 
 	int point_hovered_index = -1;
 
-	if (edit_path_points && points)
+	if (cfg.edit_path_points && points)
 	{
-		ImVec2 grab_size = ImVec2(grab_point_size.x, grab_point_size.y);
+		ImVec2 grab_size = ImVec2(cfg.grab_point_size.x, cfg.grab_point_size.y);
 		ImVec2 half_grab_size = grab_size / 2.0f;
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 		for (int i = 0; i < points->size(); i += 1)
@@ -988,26 +988,26 @@ static void display_bender_overlay(td_demo* demo, const td_point_array* directiv
 	// Display path
 	if (pw && pw->points.size())
 	{
-		if (demo->show_path)
+		if (demo->cfg.show_path)
 		{
 			td_vec2 point = pw->points[0];
-			point += pw->unit_normal_at(0) * demo->path_offset;
+			point += pw->unit_normal_at(0) * demo->cfg.path_offset;
 			stroke_path.move_to(point);
 
 			for (int i = 1; i < pw->points.size(); i += 1)
 			{
 				point = pw->points[i];
-				point += pw->unit_normal_at(i) * demo->path_offset;
+				point += pw->unit_normal_at(i) * demo->cfg.path_offset;
 				stroke_path.line_to(point);
 			}
 		}
 
-		if (demo->show_normals)
+		if (demo->cfg.show_normals)
 		{
 			for (int i = 0; i < pw->points.size(); i += 1)
 			{
 				td_vec2 p = pw->points[i];
-				td_vec2 n = pw->unit_normal_at(i) * demo->normal_scale;
+				td_vec2 n = pw->unit_normal_at(i) * demo->cfg.normal_scale;
 
 				td_vec2 normal_start = p - n;
 				td_vec2 normal_end = p + n;
@@ -1018,7 +1018,7 @@ static void display_bender_overlay(td_demo* demo, const td_point_array* directiv
 	}
 
 	// Draw directive path points.
-	if (demo->edit_path_points && points)
+	if (demo->cfg.edit_path_points && points)
 	{
 		for (int i = 0; i < points->size(); i += 1)
 		{
@@ -1029,7 +1029,7 @@ static void display_bender_overlay(td_demo* demo, const td_point_array* directiv
 				continue;
 			}
 
-			td_vec2 margin = demo->display_point_size * 0.5f;
+			td_vec2 margin = demo->cfg.display_point_size * 0.5f;
 			td_rect r{ p - margin , p + margin };
 			stroke_path.add_rect(r.min, r.max);
 			r.reduce(1.0f);
@@ -1043,7 +1043,7 @@ static void display_bender_overlay(td_demo* demo, const td_point_array* directiv
 	// Draw hovered_point
 	td_path hovered_point_rect;
 
-	td_vec2 margin = demo->display_point_size * 0.5f;
+	td_vec2 margin = demo->cfg.display_point_size * 0.5f;
 	hovered_point_rect.add_rect(point_hovered - margin, point_hovered + margin);
 	demo->rasterizer.render_fill_path(hovered_point_rect, demo->bitmap.data, demo->bitmap.width, demo->bitmap.height, point_hover_color);
 }

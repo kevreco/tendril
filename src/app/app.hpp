@@ -117,6 +117,13 @@ struct td_demo
     };
 
     struct {
+        bool show_path = true;
+        float path_offset = 2.0f;
+        bool show_normals = false;
+        float normal_scale = 30.0f;
+        bool edit_path_points = true;
+        td_vec2 display_point_size = td_vec2{ 8.0f, 8.0f };
+        td_vec2 grab_point_size = td_vec2{ 11.0f, 11.0f };
         float parameter_label_width = 120.0f;
         bool show_background_grid = true;
     } cfg;
@@ -125,14 +132,6 @@ struct td_demo
     td_font_store tendrilis_font;
 
     td_vec2 canvas_size{ TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT };
-
-    bool show_path = true;
-    float path_offset = 2.0f;
-    bool show_normals = false;
-    float normal_scale = 30.0f;
-    bool edit_path_points = true;
-    td_vec2 display_point_size = td_vec2{ 8.0f, 8.0f };
-    td_vec2 grab_point_size = td_vec2{ 11.0f, 11.0f };
 
     int selected_demo = 0;
     char svg_file_name[128] = "path.svg";
