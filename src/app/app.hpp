@@ -118,6 +118,7 @@ struct td_demo
 
     struct {
         float parameter_label_width = 120.0f;
+        bool show_background_grid = true;
     } cfg;
 
     td_font_store regular_font;

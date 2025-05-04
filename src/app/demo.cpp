@@ -355,7 +355,7 @@ void td_demo::display_canvas_background(const td_vec2& scrolling)
 	td_vec2i canvas_size = td_vec2i(TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT);
 	td_vec2i canvas_max{ canvas_min.x + canvas_size.x, canvas_min.y + canvas_size.y };
 
-	// Draw background grid
+	if (cfg.show_background_grid)
 	{
 		const int grid_step = 50;
 		for (int x = (int)fmodf(scrolling.x, grid_step); x < canvas_size.x; x += grid_step)
@@ -477,6 +477,10 @@ void td_demo::display_demo()
 				ImGui::Checkbox("Show Normals of Path", &show_normals);
 				ImGui::SetNextItemWidth(item_width);
 				ImGui::InputFloat("Normal Scale", &normal_scale, 5.0f);
+
+				ImGui::SeparatorText("Background"); // ===
+				
+				ImGui::Checkbox("Show Grid", &cfg.show_background_grid);
 			}
 
 			if (ImGui::CollapsingHeader("Path Effects"))
