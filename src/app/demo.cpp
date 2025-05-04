@@ -128,23 +128,7 @@ struct td_spiro_ctx {
 	static void quad_to(bezctx* bc, double x1, double y1, double x2, double y2)
 	{
 		td_spiro_ctx* ctx = (td_spiro_ctx*)bc;
-
-		// Quadratic to Cubic bezier
-		// P0 = P0
-		// P1 = P0 + (2/3) * (P1 - P0)
-		// P2 = P2 + (2/3) * (P1 - P2)
-		// P3 = P2
-
-		td_vec2 p1;
-		p1.x = ctx->current_point.x + (2.0f / 3.0f * ((float)x1 - ctx->current_point.x));
-		p1.y = ctx->current_point.y + (2.0f / 3.0f * ((float)y1 - ctx->current_point.y));
-
-		td_vec2 p2;
-		p2.x = (float)x2 + (2.0f / 3.0f * ((float)x1 - (float)x2));
-		p2.y = (float)y2 + (2.0f / 3.0f * ((float)y1 - (float)y2));
-
-		ctx->path->cubic_to(p1.x, p1.y, p2.x, p2.y, (float)x2, (float)y2);
-
+		ctx->path->quad_to((float)x1, (float)y1, (float)x2, (float)y2);
 		ctx->current_point.x = (float)x2;
 		ctx->current_point.y = (float)y2;
 	}

@@ -62,6 +62,36 @@ void td_path::line_to(td_vec2 p)
     line_to(p.x, p.y);
 }
 
+void td_path::quad_to(float x1, float y1, float x2, float y2)
+{
+    if (points.size() == 0)
+    {
+        move_to(0.0f, 0.0f);
+    }
+
+    // Quadratic to Cubic bezier
+    // P0 = P0
+    // P1 = P0 + (2/3) * (P1 - P0)
+    // P2 = P2 + (2/3) * (P1 - P2)
+    // P3 = P2
+
+    td_vec2 p0 = points[points.size() - 1];
+    td_vec2 p1;
+    p1.x = p0.x + (2.0f / 3.0f * (x1 - p0.x));
+    p1.y = p0.y + (2.0f / 3.0f * (y1 - p0.y));
+
+    td_vec2 p2;
+    p2.x = x2 + (2.0f / 3.0f * (x1 - x2));
+    p2.y = y2 + (2.0f / 3.0f * (y1 - y2));
+
+    cubic_to(p1.x, p1.y, p2.x, p2.y, x2, y2);
+}
+
+void td_path::quad_to(const td_vec2& p1, const td_vec2& p2)
+{
+    quad_to(p1.x, p1.y, p2.x, p2.y);
+}
+
 void td_path::cubic_to(float x1, float y1, float x2, float y2, float x3, float y3)
 {
     if (points.size() == 0)

@@ -628,6 +628,10 @@ struct td_path {
 
     void line_to(td_vec2 p);
 
+    void quad_to(float x1, float y1, float x2, float y2);
+
+    void quad_to(const td_vec2& p1, const td_vec2& p2);
+
     void cubic_to(float x1, float y1, float x2, float y2, float x3, float y3);
 
     void cubic_to(td_vec2 p1, td_vec2 p2, td_vec2 p3);
