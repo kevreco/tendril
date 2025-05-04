@@ -29,6 +29,7 @@ An online demo is available [here](https://kevreco.github.io/tendril/).
 - Use a font with smaller footprint (the current one is above 700 KB).
 - Strip non-used icons from the icon font to further reduce the memory footprint.
 - Find a way to draw the 4 extra flavor of Tendrilis:
+
 ![4_seasons_tendrilis](docs/4_seasons_tendrilis.png)
 
 ## Build
