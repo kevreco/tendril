@@ -429,6 +429,9 @@ void td_demo::display_canvas_background(const td_vec2& scrolling)
 
 void td_demo::display_demo()
 {
+	// Avoid moving window by mistake: only move window from the title bar.
+	ImGui::GetCurrentContext()->IO.ConfigWindowsMoveFromTitleBarOnly = true;
+
 	cfg.parameter_label_width = ImGui::CalcTextSize("XXXXXXXXXXX").x;
 
 	static const char* ids[demo_type_ALL_DEMO_COUNT] = {
