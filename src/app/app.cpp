@@ -76,11 +76,11 @@ void td_app::display_about_window(bool* p_open)
             ImGui::SameLine();
             ImGui::Text("-");
             ImGui::SameLine();
-            ImGui::TextLinkOpenURL("README.md", "https://github.com/kevreco/tendril/README.md");
+            ImGui::TextLinkOpenURL("README.md", "https://github.com/kevreco/tendril/blob/master/README.md");
             ImGui::SameLine();
             ImGui::Text("-");
             ImGui::SameLine();
-            ImGui::TextLinkOpenURL("LICENSE", "https://github.com/kevreco/tendril/LICENSE");
+            ImGui::TextLinkOpenURL("LICENSE", "https://github.com/kevreco/tendril/blob/master/LICENSE");
         }
         ImGui::Separator();
         ImGui::Text("Backend: %s", identifier());
