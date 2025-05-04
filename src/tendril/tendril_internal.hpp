@@ -22,6 +22,9 @@
 #define TD_XSTR(x) TD_STR(x)
 #define TD_STR(x) #x
 
+#define TD_PI 3.14159265358979323846
+#define TD_DEGTORAD(x) ((x) * TD_PI / 180.0)
+
 #define td_fabs(x)     fabsf(x)
 #define td_sqrt(x)     sqrtf(x)
 #define td_fmod(x, y)  fmodf((x), (y))

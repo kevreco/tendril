@@ -105,6 +105,218 @@ void td_path::add_rect(td_vec2 min, td_vec2 max)
     add_rect(min.x, min.y, max.x, max.y);
 }
 
+// http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+void td_path::arc_to(float rx, float ry, float x_axis_rotation, bool large_arc_flag, bool sweep_flag, float x, float y)
+{
+    const float epsilon = 1e-05f;
+
+    // Get current point.
+    td_vec2 p0 = points[points.size() - 1];
+    float p0x = p0.x;
+    float p0y = p0.y;
+
+    // (F.6.6.1) Ensure radii are positive
+    if (rx < 0.0f) rx = -rx;
+    if (ry < 0.0f) ry = -rx;
+
+    // (F.6.6) Ensure radii are non-zero
+    if (rx < epsilon || ry < epsilon)
+    {
+        line_to(x, y);
+        return;
+    }
+
+    // (F.6.5.1)
+    // 
+    
+    // Get middle point between the current point and the final point.
+    float dx = (p0x - x) * 0.5f;
+    float dy = (p0y - y) * 0.5f;
+
+    // Compute (x1', y1')
+    float cos_a = td_cos(x_axis_rotation);
+    float sin_a = td_sin(x_axis_rotation);
+    float x1 = cos_a * dx + sin_a * dy;
+    float y1 = -sin_a * dx + cos_a * dy;
+
+    // (F.6.6.2) Ensure radii are large enough.
+    float rxrx = rx * rx;
+    float ryry = ry * ry;
+    float x1x1 = x1 * x1;
+    float y1y1 = y1 * y1;
+
+    float radii = x1x1 / rxrx + y1y1 / ryry;
+    if (radii > 1.0f)
+    {
+        float sqrt_raddi = sqrt(radii);
+        rx *= sqrt_raddi;
+        ry *= sqrt_raddi;
+        rxrx = rx * rx;
+        ryry = ry * ry;
+    }
+
+    float sign = (large_arc_flag == sweep_flag) ? -1.0f : 1.0f;
+
+    // (F.6.5.2) Compute (cx', cy')
+
+    float scale_squared = (rxrx * ryry - rxrx * y1y1 - ryry * x1x1) / (rxrx * y1y1 + ryry * x1x1);
+    
+    if (scale_squared < 0.0f)
+        scale_squared = 0.0f;
+
+    float scale = sign * sqrt(scale_squared);
+
+    float cx1 = scale * ((rx * y1) / ry);
+    float cy1 = scale * -((ry * x1) / rx);
+
+    // (F.6.5.3) Compute (cx, cy) from (cx', cy')
+    float tmpx = (p0.x + x) * 0.5f;
+    float tmpy = (p0.y + y) * 0.5f;
+    float cx = (cos_a * cx1 - sin_a * cy1) + tmpx;
+    float cy = (sin_a * cx1 + cos_a * cy1) + tmpy;
+
+    // (F.6.5.4) Compute start_angle and sweep_angle
+    float ux = (x1 - cx1) / rx;
+    float uy = (y1 - cy1) / ry;
+    float vx = (-x1 - cx1) / rx;
+    float vy = (-y1 - cy1) / ry;
+
+    // start_angle
+    sign = (uy < 0.0f) ? -1.0f : 1.0f;
+    float v = ux / sqrt(ux * ux + uy * uy);
+    if (v < -1.0f) v = -1.0f;
+    if (v > 1.0f) v = 1.0f;
+
+    float start_angle = sign * acos(v);
+
+    // sweep_angle
+    sign = (ux * vy - uy * vx < 0.0f) ? -1.0f : 1.0f;
+    v = ux * vx + uy * vy / sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
+    if (v < -1.0f) v = -1.0f;
+    if (v > 1.0f) v = 1.0f;
+    
+    float sweep_angle = sign * acos(v);
+
+    if (!sweep_flag && sweep_angle > 0.0f)
+    {
+        sweep_angle -= TD_PI * 2.0f;
+    }
+    else if (sweep_flag && sweep_angle < 0.0f)
+    {
+        sweep_angle += TD_PI * 2.0f;
+    }
+
+    // Rotate radiuses to get relative points necessary for the arc function.
+    float px = rx * cos_a;
+    float py = rx * sin_a;
+    float qx = -(ry * sin_a);
+    float qy = ry * cos_a;
+
+    // We now have all parameters we need to convert the arc to bezier curves.
+    arc(cx, cy, px, py, qx, qy, start_angle, sweep_angle);
+}
+
+// Based on:
+//   "Drawing ellipses and elliptical arcs with piecewise cubic Bézier curve approximations"
+//   By Jerry R. Van Aken
+//
+// (cx, cy) is the center point of the ellipse, and P and Q are the end points
+// of a pair of conjugate diameters of the ellipse.
+// P and Q are defined relative to the center C.
+// Parameters start_angle and angle_sweep are, respectively, the starting angle for the arc and the angle swept out by the arc.
+void td_path::arc(float cx, float cy, float px, float py, float qx, float qy, float start_angle, float angle_sweep)
+{
+    const float maxphi = TD_PI / 2;
+    float tmp_x;
+    float tmp_y;
+    float p1_x; // bezier start point
+    float p1_y;
+    float c1_x; // bezier control point 1
+    float c1_y;
+    float c2_x; // bezier control point 2
+    float c2_y;
+    float p2_x; // bezier end point
+    float p2_y;
+
+    if (angle_sweep == 0)
+        return;  // zero-length arc
+
+    // Generate new conjugate diameter end points P’ and Q’
+    // by rotating points P and Q by starting angle astart
+    if (start_angle != 0)
+    {
+        float cosa = td_cos(start_angle);
+        float sina = td_sin(start_angle);
+        tmp_x = px * cosa + qx * sina;
+        tmp_y = py * cosa + qy * sina;
+        qx = qx * cosa - px * sina;
+        qy = qy * cosa - py * sina;
+        px = tmp_x;
+        py = tmp_y;
+    }
+
+    // Set the starting point for the elliptical arc
+    p2_x = px + cx;
+    p2_y = py + cy;
+
+    // If the sweep angle is negative, convert it to a
+    // positive angle pointing in the opposite direction
+    if (angle_sweep < 0)
+    {
+        qx = -qx;
+        qy = -qy;
+        angle_sweep = -angle_sweep;
+    }
+    if (angle_sweep > 2 * TD_PI)
+        angle_sweep = 2 * TD_PI;
+
+    // If the arc’s sweep angle is too big to be accurately
+    // drawn as a single Bezier curve segment, partition it
+    // into smaller angles of uniform size ’phi’
+    int nsegs = 1;
+    float phi = angle_sweep;
+    if (angle_sweep > maxphi)
+    {
+        nsegs = ceil(angle_sweep / maxphi);
+        phi = angle_sweep / nsegs;
+    }
+
+    // Use tuning parameter ’tau’ to calculate initial
+    // Bezier control point c2
+    float tau = (4.0f / 3) * td_tan(phi / 4);
+    c2_x = p2_x - tau * qx;
+    c2_y = p2_y - tau * qy;
+
+    // For each elliptical arc of ’phi’ radians, plot a
+    // Bezier curve segment to approximate the arc
+    float cosp = td_cos(phi);
+    float sinp = td_sin(phi);
+    for (int i = 0; i < nsegs; ++i)
+    {
+        p1_x = p2_x;
+        p1_y = p2_y;
+        c1_x = p1_x + (p1_x - c2_x);
+        c1_y = p1_y + (p1_y - c2_y);
+        tmp_x = px * cosp + qx * sinp;
+        tmp_y = py * cosp + qy * sinp;
+        qx = qx * cosp - px * sinp;
+        qy = qy * cosp - py * sinp;
+        px = tmp_x;
+        py = tmp_y;
+        p2_x = px + cx;
+        p2_y = py + cy;
+        c2_x = p2_x - tau * qx;
+        c2_y = p2_y - tau * qy;
+        // cubic bezier [p1, c1, c2, p2]
+        cubic_to(c1_x, c1_y, c2_x, c2_y, p2_x, p2_y);
+    }
+}
+
+void td_path::arc(const td_vec2& c, const td_vec2& p, const td_vec2& q, float start_angle, float angle_sweep)
+{
+    arc(c.x, c.y, p.x, p.y, q.x, q.y, start_angle, angle_sweep);
+}
+
 void td_path::add_path(const td_path& path)
 {
     size_t cmds_start = cmds.size();

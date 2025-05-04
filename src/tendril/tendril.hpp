@@ -636,6 +636,19 @@ struct td_path {
 
     void add_rect(td_vec2 min, td_vec2 max);
 
+    void arc(float cx, float cy, float px, float py, float qx, float qy, float start_angle, float angle_sweep);
+    
+    void arc(const td_vec2& c, const td_vec2& p, const td_vec2& q, float start_angle, float angle_sweep);
+
+    // Draw an arc using an API equivalent to the SVG specification:
+    //    A rx ry rotation large-arc-flag sweep-flag x y
+    // rx, ry : horizontal and vertical Radiuses.
+    // rotation: x axis rotation in radian.
+    // large_arc_flag: short way or long way.
+    // sweep_flag: clockwise or counter-clockwise.
+    // x, y: position of the end of the arc.
+    void arc_to(float rx, float ry, float rotation, bool large_arc_flag, bool sweep_flag, float x, float y);
+
     void close();
 
     void add_path(const td_path& p);

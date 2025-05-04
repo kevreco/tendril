@@ -32,6 +32,7 @@ enum demo_type {
 	demo_type_CURVE_ON_LINE,
 	demo_type_VBARS_ON_CURVE,
 	demo_type_HBARS_ON_CURVE,
+	demo_type_DRAW_ARC,
 	demo_type_ALL_DEMO_COUNT
 };
 
@@ -408,6 +409,7 @@ void td_demo::display_demo()
 		curve_on_line.id,
 		vbars_on_curve.id,
 		hbars_on_curve.id,
+		draw_arc.id
 	};
 
 	path_bender bender;
@@ -784,6 +786,30 @@ void td_demo::display_demo()
 			bender.set(hbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
 			display_canvas(&bender, to_id(hbars_on_curve.id), &hbars_on_curve.path.points);
+			break;
+		}
+		case demo_type_DRAW_ARC: {
+
+			ImGui::DragFloat("mx", &draw_arc.mx);
+			ImGui::DragFloat("my", &draw_arc.my);
+			ImGui::DragFloat("rx", &draw_arc.rx);
+			ImGui::DragFloat("ry", &draw_arc.ry);
+			ImGui::DragFloat("xrotation", &draw_arc.xrotation, 0.1);
+			ImGui::Checkbox("large_arc", &draw_arc.large_arc);
+			ImGui::Checkbox("sweep_flag", &draw_arc.sweep_flag);
+			ImGui::DragFloat("x", &draw_arc.x);
+			ImGui::DragFloat("y", &draw_arc.y);
+
+			draw_arc.path.clear();
+			draw_arc.path.move_to(draw_arc.mx, draw_arc.my);
+
+			draw_arc.path.arc_to(draw_arc.rx, draw_arc.ry, draw_arc.xrotation, draw_arc.large_arc, draw_arc.sweep_flag, draw_arc.x, draw_arc.y);
+
+			td_path* path = apply_various_effect(&draw_arc.path);
+
+			// @TODO we should be able to display a path without requiring the bender.
+			bender.result_path = draw_arc.path;
+			display_canvas(&bender, to_id(draw_arc.id), NULL);
 			break;
 		}
 		}

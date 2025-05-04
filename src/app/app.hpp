@@ -243,6 +243,25 @@ struct td_demo
         td_path path;
     } hbars_on_curve;
 
+    struct {
+        const char* id = "Draw arc";
+        td_path path;
+        // move x and y
+        float mx = 30.0f;
+        float my = 100.0f;
+
+        // SVG arc parameters
+        //   A rx ry rotation large-arc-flag sweep-flag x y
+
+        float rx = 100.0f;
+        float ry = 75.0f;
+        float xrotation = 0.0f;
+        bool large_arc = false;
+        bool sweep_flag = false;
+        float x = 200.0f;
+        float y = 150.0f;
+    } draw_arc;
+
     td_demo();
     ~td_demo();
 
