@@ -279,7 +279,11 @@ struct td_demo
         td_vec2 pos; // mouse pos
     };
 
-    canvas_mouse_state display_canvas(path_bender* bender, void* id, td_point_array* points);
+    // target_path: shape being displayed.
+    // pw_path: piecewise path optionally displayed.
+    // points: points being display or edited. 
+    canvas_mouse_state display_canvas(const td_path& target_path, const td_piecewise_path* pw_path, td_point_array* points);
+    canvas_mouse_state display_canvas_with_bender(path_bender* bender, td_point_array* points);
 
     td_font_store* get_font(int font_type);
 };

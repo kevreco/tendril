@@ -142,8 +142,6 @@ struct td_spiro_ctx {
 	}
 };
 
-static void* to_id(const char* str);
-
 // Display extra drawing (directive path, normals, points)
 static void display_bender_overlay(td_demo* demo, const td_point_array* directive_path_points, const td_piecewise_path* directive_pw_path, const td_vec2& point_hovered);
 
@@ -514,7 +512,7 @@ void td_demo::display_demo()
 
 			bender.set(text_on_line.target, *path);
 
-			display_canvas(&bender, to_id(text_on_line.id), &text_on_line.path.points);
+			display_canvas_with_bender(&bender, &text_on_line.path.points);
 
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
@@ -535,7 +533,7 @@ void td_demo::display_demo()
 
 			bender.set(text_on_polyline.target, *path);
 
-			display_canvas(&bender, to_id(text_on_polyline.id), &text_on_polyline.path.points);
+			display_canvas_with_bender(&bender, &text_on_polyline.path.points);
 
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
@@ -555,7 +553,7 @@ void td_demo::display_demo()
 
 			bender.set(text_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas(&bender, to_id(text_on_curve.id), &text_on_curve.path.points);
+			display_canvas_with_bender(&bender, &text_on_curve.path.points);
 
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
@@ -572,7 +570,7 @@ void td_demo::display_demo()
 			int flags = path_bender_flags_INTERPOLATE_TANGENT | path_bender_flags_STRETCH_TARGET;
 			bender.set(triangle_on_curve.target, *path, flags);
 
-			display_canvas(&bender, to_id(triangle_on_curve.id), &triangle_on_curve.path.points);
+			display_canvas_with_bender(&bender, &triangle_on_curve.path.points);
 
 			break;
 		}
@@ -586,7 +584,7 @@ void td_demo::display_demo()
 
 			bender.set(tendrilis_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas(&bender, to_id(tendrilis_on_curve.id), &tendrilis_on_curve.path.points);
+			display_canvas_with_bender(&bender, &tendrilis_on_curve.path.points);
 
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
@@ -619,7 +617,7 @@ void td_demo::display_demo()
 
 			bender.set(spiro.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			canvas_mouse_state mouse_state = display_canvas(&bender, to_id(spiro.id), &spiro.points);
+			canvas_mouse_state mouse_state = display_canvas_with_bender(&bender, &spiro.points);
 
 			bool edit_state_changed = display_curve_toolstrip(&spiro.edit_state);
 
@@ -688,7 +686,7 @@ void td_demo::display_demo()
 
 			bender.set(other.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			canvas_mouse_state state = display_canvas(&bender, to_id(other.id), &other.points);
+			canvas_mouse_state state = display_canvas_with_bender(&bender, &other.points);
 
 			bool edit_state_changed = display_curve_toolstrip(&other.edit_state);
 			
@@ -739,7 +737,7 @@ void td_demo::display_demo()
 			bool smooth = true;
 			bender.set(rect_on_line.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas(&bender, to_id(rect_on_line.id), &rect_on_line.path.points);
+			display_canvas_with_bender(&bender, &rect_on_line.path.points);
 			break;
 		}
 		case demo_type_CURVE_ON_LINE: {
@@ -749,7 +747,7 @@ void td_demo::display_demo()
 			bool smooth = true;
 			bender.set(curve_on_line.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas(&bender, to_id(curve_on_line.id), &curve_on_line.path.points);
+			display_canvas_with_bender(&bender, &curve_on_line.path.points);
 			break;
 		}
 		case demo_type_VBARS_ON_CURVE: {
@@ -759,7 +757,7 @@ void td_demo::display_demo()
 			bool smooth = true;
 			bender.set(vbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas(&bender, to_id(vbars_on_curve.id), &vbars_on_curve.path.points);
+			display_canvas_with_bender(&bender, &vbars_on_curve.path.points);
 			break;
 		}
 		case demo_type_HBARS_ON_CURVE: {
@@ -769,11 +767,22 @@ void td_demo::display_demo()
 			bool smooth = true;
 			bender.set(hbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas(&bender, to_id(hbars_on_curve.id), &hbars_on_curve.path.points);
+			display_canvas_with_bender(&bender, &hbars_on_curve.path.points);
 			break;
 		}
 		case demo_type_DRAW_ARC: {
 
+			draw_arc.path.clear();
+			draw_arc.path.move_to(draw_arc.mx, draw_arc.my);
+
+			draw_arc.path.arc_to(draw_arc.rx, draw_arc.ry, draw_arc.xrotation, draw_arc.large_arc, draw_arc.sweep_flag, draw_arc.x, draw_arc.y);
+
+			td_path* path = apply_various_effect(&draw_arc.path);
+
+			display_canvas(draw_arc.path, NULL, NULL);
+
+			ImGui::SeparatorText("Parameters");
+			ImGui::Spacing();
 			ImGui::DragFloat("mx", &draw_arc.mx);
 			ImGui::DragFloat("my", &draw_arc.my);
 			ImGui::DragFloat("rx", &draw_arc.rx);
@@ -783,17 +792,6 @@ void td_demo::display_demo()
 			ImGui::Checkbox("sweep_flag", &draw_arc.sweep_flag);
 			ImGui::DragFloat("x", &draw_arc.x);
 			ImGui::DragFloat("y", &draw_arc.y);
-
-			draw_arc.path.clear();
-			draw_arc.path.move_to(draw_arc.mx, draw_arc.my);
-
-			draw_arc.path.arc_to(draw_arc.rx, draw_arc.ry, draw_arc.xrotation, draw_arc.large_arc, draw_arc.sweep_flag, draw_arc.x, draw_arc.y);
-
-			td_path* path = apply_various_effect(&draw_arc.path);
-
-			// @TODO we should be able to display a path without requiring the bender.
-			bender.result_path = draw_arc.path;
-			display_canvas(&bender, to_id(draw_arc.id), NULL);
 			break;
 		}
 		}
@@ -827,7 +825,7 @@ void td_demo::display_svg_widget(const td_path& path, float button_width)
 	ImGui::InputText("##SVG Export", svg_file_name, sizeof(svg_file_name));
 }
 
-td_demo::canvas_mouse_state td_demo::display_canvas(path_bender* bender, void* id, td_point_array* points)
+td_demo::canvas_mouse_state td_demo::display_canvas(const td_path& target_path, const td_piecewise_path* pw_directive_path, td_point_array* points)
 {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	ImVec2 canvas_min = ImGui::GetCursorScreenPos();
@@ -841,7 +839,7 @@ td_demo::canvas_mouse_state td_demo::display_canvas(path_bender* bender, void* i
 	state.pos = no_hovered_coord;
 
 	ImVec2 imgui_cursor_pos = ImGui::GetCursorPos();
-	ImGui::PushID(id);
+	ImGui::PushID(texture);
 	ImGui::ImageWithBorder((ImTextureID)(intptr_t)texture, canvas_size);
 
 	if (ImGui::IsItemHovered())
@@ -917,7 +915,7 @@ td_demo::canvas_mouse_state td_demo::display_canvas(path_bender* bender, void* i
 	
 	ImGui::Spacing();
 
-	display_svg_widget(bender->result_path, cfg.parameter_label_width);
+	display_svg_widget(target_path, cfg.parameter_label_width);
 	ImGui::Spacing();
 	// No scrolling yet.
 	const td_vec2 scrolling{ 0.0f, 0.0f };
@@ -925,17 +923,23 @@ td_demo::canvas_mouse_state td_demo::display_canvas(path_bender* bender, void* i
 	// Display background color and the lines for the grid.
 	display_canvas_background(scrolling);
 
-	rasterizer.render_fill_path(bender->result_path, bitmap.data, bitmap.width, bitmap.height, green_tendrilis);
+	rasterizer.render_fill_path(target_path, bitmap.data, bitmap.width, bitmap.height, green_tendrilis);
 	td_vec2 point_hovered{ -9999.0f,-9999.0f };
 	if (point_hovered_index >= 0)
 	{
 		point_hovered = points->at(point_hovered_index);
 	}
-	display_bender_overlay(this, points, &bender->pw_directive_path, point_hovered);
+
+	display_bender_overlay(this, points, pw_directive_path, point_hovered);
 
 	bool loaded_or_updated = app_backend::load_or_update_texture(bitmap.data, bitmap.width, bitmap.height, &texture);
 	TD_ASSERT(loaded_or_updated);
 	return state;
+}
+
+td_demo::canvas_mouse_state td_demo::display_canvas_with_bender(path_bender* bender, td_point_array* points)
+{
+	return display_canvas(bender->result_path, &bender->pw_directive_path, points);
 }
 
 td_font_store* td_demo::get_font(int font_type)
@@ -943,19 +947,16 @@ td_font_store* td_demo::get_font(int font_type)
 	return font_type == td_font_type_REGULAR ? &regular_font : &tendrilis_font;
 }
 
-static void* to_id(const char* str)
-{
-	return (void*)str;
-}
-
 static void display_bender_overlay(td_demo* demo, const td_point_array* directive_path_points, const td_piecewise_path* directive_pw_path, const td_vec2& point_hovered)
 {
 	const td_point_array* points = directive_path_points;
 	const td_piecewise_path* pw = directive_pw_path;
+
 	td_path stroke_path;
 	td_path fill_path;
+
 	// Display path
-	if (pw->points.size())
+	if (pw && pw->points.size())
 	{
 		if (demo->show_path)
 		{
