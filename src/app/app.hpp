@@ -268,6 +268,8 @@ struct td_demo
 
     void display();
 
+    void display_options();
+
     void display_canvas_background(const td_vec2& scrolling);
     void display_demo();
     void display_svg_widget(const td_path& path, float button_width);

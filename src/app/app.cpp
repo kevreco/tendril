@@ -44,6 +44,11 @@ void td_app::display_main_menu_bar()
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Options"))
+        {
+            ImGui::EndMenu();
+        }
+
         if (ImGui::MenuItem("About"))
         {
             cfg.show_about_window = true;

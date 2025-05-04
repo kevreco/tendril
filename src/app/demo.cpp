@@ -349,6 +349,63 @@ void td_demo::display()
 	display_demo();
 }
 
+void td_demo::display_options()
+{
+	const float item_width = 140;
+
+	if (ImGui::TreeNode("Colors"))
+	{
+		ImGui::SetNextItemWidth(item_width);
+		ImGui::U32ColorEdit3("Filling Color##Drawing", green_tendrilis.to_u32_ptr());
+		ImGui::SetNextItemWidth(item_width);
+		ImGui::U32ColorEdit3("Line Color##Directive", line_color.to_u32_ptr());
+		ImGui::SetNextItemWidth(item_width);
+		ImGui::U32ColorEdit3("Point Hover Color##Directive", point_hover_color.to_u32_ptr());
+		ImGui::SetNextItemWidth(item_width);
+		ImGui::U32ColorEdit4("Bg Color##Directive", background_color.to_u32_ptr());
+		ImGui::SetNextItemWidth(item_width);
+		ImGui::U32ColorEdit3("Bg Grid Color##Directive", background_grid_color.to_u32_ptr());
+
+		ImGui::TreePop();
+	}
+
+	ImGui::SeparatorText("Path"); // ===
+
+	ImGui::Checkbox("Show Path", &show_path);
+	ImGui::Checkbox("Edit Path Points", &edit_path_points);
+	ImGui::SetNextItemWidth(item_width);
+	ImGui::InputFloat("Path Offset", &path_offset, 1.0f);
+
+	ImGui::SeparatorText("Normal"); // ===
+
+	ImGui::Checkbox("Show Normals of Path", &show_normals);
+	ImGui::SetNextItemWidth(item_width);
+	ImGui::InputFloat("Normal Scale", &normal_scale, 5.0f);
+
+	ImGui::SeparatorText("Background"); // ===
+
+	ImGui::Checkbox("Show Grid", &cfg.show_background_grid);
+
+	ImGui::SeparatorText("Other"); // ===
+
+	if (ImGui::Button("Reset demo"))
+	{
+		ImGui::OpenPopup("##PopUpReset");
+	}
+
+	if (ImGui::BeginPopup("##PopUpReset"))
+	{
+		ImGui::Text("Reset Confirmation:");
+		if (ImGui::Selectable("Yes"))
+		{
+			td_demo new_demo;
+			td_memswap_ptr(&new_demo, this);
+		}
+		ImGui::Selectable("No");
+		ImGui::EndPopup();
+	}
+}
+
 void td_demo::display_canvas_background(const td_vec2& scrolling)
 {
 	td_vec2i canvas_min = td_vec2i(0, 0);
@@ -374,8 +431,6 @@ void td_demo::display_demo()
 {
 	cfg.parameter_label_width = ImGui::CalcTextSize("XXXXXXXXXXX").x;
 
-	bool reset_requested = false;
-
 	static const char* ids[demo_type_ALL_DEMO_COUNT] = {
 		text_on_line.id,
 		text_on_polyline.id,
@@ -394,6 +449,25 @@ void td_demo::display_demo()
 		draw_arc.id
 	};
 
+	// Display demo options in the main menu bar
+	{
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("Options"))
+			{
+				if (ImGui::BeginMenu("Demo"))
+				{
+					display_options();
+					ImGui::EndMenu();
+				}
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMainMenuBar();
+		}
+	}
+
 	path_bender bender;
 
 	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
@@ -403,22 +477,6 @@ void td_demo::display_demo()
 
 	if (ImGui::Begin("Tendril Demo"))
 	{
-		if (ImGui::Button("Reset demo"))
-		{
-			ImGui::OpenPopup("##PopUpReset");
-		}
-
-		if (ImGui::BeginPopup("##PopUpReset"))
-		{
-			ImGui::Text("Reset Confirmation:");
-			if (ImGui::Selectable("Yes"))
-			{
-				reset_requested = true;
-			}
-			ImGui::Selectable("No");
-			ImGui::EndPopup();
-		}
-
 		if (ImGui::BeginChild("##DemoListChild", ImVec2(300, 0), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders |  ImGuiChildFlags_NavFlattened ))
 		{
 			if (ImGui::CollapsingHeader("Demos", ImGuiTreeNodeFlags_DefaultOpen))
@@ -448,39 +506,7 @@ void td_demo::display_demo()
 
 			if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				const float item_width = 140;
-				if (ImGui::TreeNode("Colors"))
-				{
-					ImGui::SetNextItemWidth(item_width);
-					ImGui::U32ColorEdit3("Filling Color##Drawing", green_tendrilis.to_u32_ptr());
-					ImGui::SetNextItemWidth(item_width);
-					ImGui::U32ColorEdit3("Line Color##Directive", line_color.to_u32_ptr());
-					ImGui::SetNextItemWidth(item_width);
-					ImGui::U32ColorEdit3("Point Hover Color##Directive", point_hover_color.to_u32_ptr());
-					ImGui::SetNextItemWidth(item_width);
-					ImGui::U32ColorEdit4("Bg Color##Directive", background_color.to_u32_ptr());
-					ImGui::SetNextItemWidth(item_width);
-					ImGui::U32ColorEdit3("Bg Grid Color##Directive", background_grid_color.to_u32_ptr());
-
-					ImGui::TreePop();
-				}
-
-				ImGui::SeparatorText("Path"); // ===
-
-				ImGui::Checkbox("Show Path", &show_path);
-				ImGui::Checkbox("Edit Path Points", &edit_path_points);
-				ImGui::SetNextItemWidth(item_width);
-				ImGui::InputFloat("Path Offset", &path_offset, 1.0f);
-
-				ImGui::SeparatorText("Normal"); // ===
-
-				ImGui::Checkbox("Show Normals of Path", &show_normals);
-				ImGui::SetNextItemWidth(item_width);
-				ImGui::InputFloat("Normal Scale", &normal_scale, 5.0f);
-
-				ImGui::SeparatorText("Background"); // ===
-				
-				ImGui::Checkbox("Show Grid", &cfg.show_background_grid);
+				display_options();
 			}
 
 			if (ImGui::CollapsingHeader("Path Effects"))
@@ -809,12 +835,6 @@ void td_demo::display_demo()
 		ImGui::EndChild();
 	}
 	ImGui::End();
-
-	if (reset_requested)
-	{
-		td_demo new_demo;
-		td_memswap_ptr(&new_demo, this);
-	}
 }
 
 void td_demo::display_svg_widget(const td_path& path, float button_width)
