@@ -482,7 +482,7 @@ void td_demo::display_demo()
 
 	if (ImGui::Begin("Tendril Demo"))
 	{
-		if (ImGui::BeginChild("##DemoListChild", ImVec2(300, 0), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders |  ImGuiChildFlags_NavFlattened ))
+		if (ImGui::BeginChild("##LeftPanel", ImVec2(300, 0), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders |  ImGuiChildFlags_NavFlattened ))
 		{
 			if (ImGui::CollapsingHeader("Demos", ImGuiTreeNodeFlags_DefaultOpen))
 			{
@@ -528,9 +528,8 @@ void td_demo::display_demo()
 
 		// Right side: draw properties
 		ImGui::SameLine();
-
-		ImGui::BeginChild("##Canvas", ImVec2(canvas_size.x + 35, 0));
-
+		
+		ImGui::BeginChild("##Canvas", ImVec2(canvas_size.x, 0));
 		bool display_curve_handle = true;
 		ImGui::Text("Demo: %s", ids[selected_demo]);
 
@@ -551,13 +550,6 @@ void td_demo::display_demo()
 			bender.set(text_on_line.target, *path);
 
 			display_canvas_with_bender(&bender, &text_on_line.path.points);
-
-			ImGui::SeparatorText("Parameters");
-			ImGui::Spacing();
-			ImGui::Text("Text");   ImGui::SameLine(label_margin);  ImGui::InputText("##Text", &text_on_line.text);
-			ImGui::Text("Font size");  ImGui::SameLine(label_margin);  ImGui::SliderFloat("##Font size", &text_on_line.font_size, 10, max_font_size);
-			display_font_combox("Font: ", label_margin, &text_on_line.font_type);
-			
 			break;
 		}
 		case demo_type_TEXT_ON_POLYLINE:
@@ -573,11 +565,6 @@ void td_demo::display_demo()
 
 			display_canvas_with_bender(&bender, &text_on_polyline.path.points);
 
-			ImGui::SeparatorText("Parameters");
-			ImGui::Spacing();
-			ImGui::Text("Text");   ImGui::SameLine(label_margin);  ImGui::InputText("##Text", &text_on_polyline.text);
-			ImGui::Text("Font size");  ImGui::SameLine(label_margin);  ImGui::SliderFloat("##Font size", &text_on_polyline.font_size, 10, max_font_size);
-			display_font_combox("Font: ", label_margin, &text_on_polyline.font_type);
 			break;
 		}
 		case demo_type_TEXT_ON_CURVE:
@@ -592,12 +579,6 @@ void td_demo::display_demo()
 			bender.set(text_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
 			display_canvas_with_bender(&bender, &text_on_curve.path.points);
-
-			ImGui::SeparatorText("Parameters");
-			ImGui::Spacing();
-			ImGui::Text("Text");   ImGui::SameLine(label_margin);  ImGui::InputText("##Text", &text_on_curve.text);
-			ImGui::Text("Font size");  ImGui::SameLine(label_margin);  ImGui::SliderFloat("##Font size", &text_on_curve.font_size, 10, max_font_size);
-			display_font_combox("Font: ", label_margin, &text_on_curve.font_type);
 			break;
 		}
 		
@@ -630,11 +611,6 @@ void td_demo::display_demo()
 
 			display_canvas_with_bender(&bender, &tendrilis_on_curve.path.points);
 
-			ImGui::SeparatorText("Parameters");
-			ImGui::Spacing();
-			ImGui::Text("Text");   ImGui::SameLine(label_margin);  ImGui::InputText("##Text", &tendrilis_on_curve.text);
-			ImGui::Text("Font size");  ImGui::SameLine(label_margin);  ImGui::SliderFloat("##Font size", &tendrilis_on_curve.font_size, 10, max_font_size);
-			display_font_combox("Font: ", label_margin, &tendrilis_on_curve.font_type);
 			break;
 		}
 
@@ -698,11 +674,6 @@ void td_demo::display_demo()
 				}
 			}
 
-			ImGui::SeparatorText("Parameters");
-			ImGui::Spacing();
-			ImGui::Text("Text");   ImGui::SameLine(label_margin);  ImGui::InputText("##Text", &spiro.text);
-			ImGui::Text("Font size");  ImGui::SameLine(label_margin);  ImGui::SliderFloat("##Font size", &spiro.font_size, 10, max_font_size);
-			display_font_combox("Font: ", label_margin, &spiro.font_type);
 			break;
 		}
 		case demo_type_DRAW_TENDRILIS_OTHER: {
@@ -767,11 +738,6 @@ void td_demo::display_demo()
 				}
 			}
 	
-			ImGui::SeparatorText("Parameters");
-			ImGui::Spacing();
-			ImGui::Text("Text");   ImGui::SameLine(label_margin);  ImGui::InputText("##Text", &other.text);
-			ImGui::Text("Font size");  ImGui::SameLine(label_margin);  ImGui::SliderFloat("##Font size", &other.font_size, 10, max_font_size);
-			display_font_combox("Font: ", label_margin, &other.font_type);
 			break;
 		}
 		case demo_type_RECT_ON_LINE: {
@@ -824,7 +790,93 @@ void td_demo::display_demo()
 			td_path* path = apply_various_effect(&draw_arc.path);
 
 			display_canvas(draw_arc.path, NULL, NULL);
+			break;
+		}
+		}
 
+		ImGui::EndChild();
+
+		ImGui::SameLine();
+		ImGui::BeginChild("##RightPanel", ImVec2(), ImGuiChildFlags_Borders );
+		
+		switch (selected_demo)
+		{
+		case demo_type_TEXT_ON_LINE:
+		{
+			ImGui::SeparatorText("Parameters");
+			ImGui::Spacing();
+			ImGui::InputText("Text", &text_on_line.text);
+			ImGui::SliderFloat("Font size", &text_on_line.font_size, 10, max_font_size);
+			display_font_combox("Font ", label_margin, &text_on_line.font_type);
+
+			break;
+		}
+		case demo_type_TEXT_ON_POLYLINE:
+		{
+			ImGui::SeparatorText("Parameters");
+			ImGui::Spacing();
+			ImGui::InputText("Text", &text_on_polyline.text);
+			ImGui::SliderFloat("Font size", &text_on_polyline.font_size, 10, max_font_size);
+			display_font_combox("Font ", label_margin, &text_on_polyline.font_type);
+			break;
+		}
+		case demo_type_TEXT_ON_CURVE:
+		{
+			ImGui::SeparatorText("Parameters");
+			ImGui::Spacing();
+			ImGui::InputText("Text", &text_on_curve.text);
+			ImGui::SliderFloat("Font size", &text_on_curve.font_size, 10, max_font_size);
+			display_font_combox("Font ", label_margin, &text_on_curve.font_type);
+			break;
+		}
+
+		case demo_type_TRIANGLE_ON_CURVE:
+		{
+			break;
+		}
+		case demo_type_TENDRILIS_ON_CURVE: {
+			
+			ImGui::SeparatorText("Parameters");
+			ImGui::Spacing();
+			ImGui::InputText("Text", &tendrilis_on_curve.text);
+			ImGui::SliderFloat("Font size", &tendrilis_on_curve.font_size, 10, max_font_size);
+			display_font_combox("Font ", label_margin, &tendrilis_on_curve.font_type);
+			break;
+		}
+
+		case demo_type_DRAW_TENDRILIS_SPIRO: {
+			ImGui::SeparatorText("Parameters");
+			ImGui::Spacing();
+			ImGui::InputText("Text", &draw_tendrilis_spiro.text);
+			ImGui::SliderFloat("Font size", &draw_tendrilis_spiro.font_size, 10, max_font_size);
+			display_font_combox("Font ", label_margin, &draw_tendrilis_spiro.font_type);
+			break;
+		}
+		case demo_type_DRAW_TENDRILIS_OTHER: {
+			ImGui::SeparatorText("Parameters");
+			ImGui::Spacing();
+			ImGui::InputText("Text", &draw_tendrilis_other.text);
+			ImGui::SliderFloat("Font size", &draw_tendrilis_other.font_size, 10, max_font_size);
+			display_font_combox("Font ", label_margin, &draw_tendrilis_other.font_type);
+			break;
+		}
+		case demo_type_RECT_ON_LINE: {
+			break;
+		}
+		case demo_type_CURVE_ON_LINE: {
+
+			break;
+		}
+		case demo_type_VBARS_ON_CURVE: {
+
+			break;
+		}
+		case demo_type_HBARS_ON_CURVE: {
+
+			break;
+		}
+		case demo_type_DRAW_ARC: {
+		
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
 			ImGui::DragFloat("mx", &draw_arc.mx);
@@ -836,11 +888,13 @@ void td_demo::display_demo()
 			ImGui::Checkbox("sweep_flag", &draw_arc.sweep_flag);
 			ImGui::DragFloat("x", &draw_arc.x);
 			ImGui::DragFloat("y", &draw_arc.y);
+
 			break;
 		}
 		}
 
 		ImGui::EndChild();
+
 	}
 	ImGui::End();
 }
@@ -1139,14 +1193,11 @@ static bool display_curve_toolstrip(td_curve_edit_state* edit_state)
 
 static void display_font_combox(const char* label, float label_margin, int* selected_index)
 {
-	ImGui::Text(label);
-	ImGui::SameLine(label_margin);
-
 	int index = *selected_index;
-	const char* items[] = { "Regular","Tendrilis" };
+	const char* items[] = { "Regular", "Tendrilis" };
 
 	const char* combo_preview_value = items[index];
-	if (ImGui::BeginCombo("##Font", combo_preview_value))
+	if (ImGui::BeginCombo(label, combo_preview_value))
 	{
 		for (int i = 0; i < IM_ARRAYSIZE(items); i++)
 		{
