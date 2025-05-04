@@ -768,9 +768,11 @@ namespace td {
     // Must not be confused with to_piecewise_path.
     void to_fragmented_path(const td_path& path, td_path* fragmented, float fragment_length = 5.0f);
 
-    void to_svg(const td_path& path, const char* filename, size_t width, size_t height, const char* color = "black", td_svg_options option = td_svg_options_FILL);
+    // Create SVG file with a single path.
+    void to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color = "black", td_svg_options option = td_svg_options_FILL);
 
-    void to_svg(const td_path& path, FILE* file, size_t width, size_t height, const char* color = "black", td_svg_options option = td_svg_options_FILL);
+    // Create SVG file with a single path.
+    void to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color = "black", td_svg_options option = td_svg_options_FILL);
 
     td_vec2 transform_along_piecewise(const td_piecewise_path& pw, td_vec2 p);
     td_vec2 smooth_transform_along_piecewise(const td_piecewise_path& pw, td_vec2 p);

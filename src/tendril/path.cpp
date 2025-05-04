@@ -658,7 +658,7 @@ void td::to_fragmented_path(const td_path& path, struct td_path* fragmented, flo
     traverse_flatten_path(path, td_path_fragmenter::func, &fragmenter);
 }
 
-void td::to_svg(const td_path& path, const char* filename, size_t width, size_t height, const char* color, td_svg_options option)
+void td::to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color, td_svg_options option)
 {
     FILE* f = 0;
     const char* mode = "wb";
@@ -670,7 +670,7 @@ void td::to_svg(const td_path& path, const char* filename, size_t width, size_t 
     f = fopen(filename, mode);
 #endif
 
-    to_svg(path, f, width, height, color, option);
+    to_svg_file(path, f, width, height, color, option);
 
     fclose(f);
 }
@@ -681,7 +681,7 @@ void td::to_svg(const td_path& path, const char* filename, size_t width, size_t 
 //      <path d="M150 5 L75 200 L225 200 Z"
 //      style="fill:none;stroke:black;stroke-width:1" />
 //    </svg>
-void td::to_svg(const td_path& path, FILE* file, size_t width, size_t height, const char* color, td_svg_options option)
+void td::to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color, td_svg_options option)
 {
     const char* path_type = option == td_svg_options_STROKE ? "stroke" : "fill";
 
