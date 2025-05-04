@@ -577,6 +577,12 @@ void td_demo::display_demo()
 		case demo_type_TENDRILIS_ON_CURVE: {
 			td_font_store* font = get_font(tendrilis_on_curve.font_type);
 
+			// Adjust text if tendrilis font is used.
+			if (font == &tendrilis_font)
+			{
+				normalize_tendrilis_text(&tendrilis_on_curve.text);
+			}
+
 			tendrilis_on_curve.target.clear();
 			td::insert_text_to_path(font, tendrilis_on_curve.text.data(), td_vec2(), tendrilis_on_curve.font_size, &tendrilis_on_curve.target);
 
