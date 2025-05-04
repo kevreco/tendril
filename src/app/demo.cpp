@@ -482,54 +482,52 @@ void td_demo::display_demo()
 
 	if (ImGui::Begin("Tendril Demo"))
 	{
-		if (ImGui::BeginChild("##LeftPanel", ImVec2(300, 0), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders |  ImGuiChildFlags_NavFlattened ))
+		ImGui::BeginChild("##LeftPanel", ImVec2(300, 0), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders | ImGuiChildFlags_NavFlattened);
+		
+		if (ImGui::CollapsingHeader("Demos", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			if (ImGui::CollapsingHeader("Demos", ImGuiTreeNodeFlags_DefaultOpen))
+			if (ImGui::BeginChild("##DemoList", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AutoResizeY))
 			{
-				if (ImGui::BeginChild("##DemoList", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AutoResizeY))
+				for (int i = 0; i < demo_type_REGULAR_DEMO_COUNT; i += 1)
 				{
-					for (int i = 0; i < demo_type_REGULAR_DEMO_COUNT; i += 1)
+					ImGui::RadioButton(ids[i], &selected_demo, i);
+				}
+				ImGui::EndChild();
+			}
+		}
+
+		if (cfg.show_debug_demos)
+		{
+			if (ImGui::CollapsingHeader("Debug demos"))
+			{
+				if (ImGui::BeginChild("##DebugDemoList", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AutoResizeY))
+				{
+					for (int i = demo_type_DEBUG_DEMO_START + 1; i < demo_type_ALL_DEMO_COUNT; i += 1)
 					{
 						ImGui::RadioButton(ids[i], &selected_demo, i);
 					}
+
 					ImGui::EndChild();
 				}
 			}
-
-			if (cfg.show_debug_demos)
-			{
-				if (ImGui::CollapsingHeader("Debug demos"))
-				{
-					if (ImGui::BeginChild("##DebugDemoList", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AutoResizeY))
-					{
-						for (int i = demo_type_DEBUG_DEMO_START + 1; i < demo_type_ALL_DEMO_COUNT; i += 1)
-						{
-							ImGui::RadioButton(ids[i], &selected_demo, i);
-						}
-
-						ImGui::EndChild();
-					}
-				}
-			}
-
-			if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				display_options();
-			}
-
-			if (ImGui::CollapsingHeader("Path Effects"))
-			{
-				ImGui::Checkbox("Wobble", &wobble.enabled);
-				ImGui::Checkbox("Periodic Wave", &period.enabled);
-			}
 		}
-		
-		ImGui::EndChild();
 
-		// Right side: draw properties
+		if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			display_options();
+		}
+
+		if (ImGui::CollapsingHeader("Path Effects"))
+		{
+			ImGui::Checkbox("Wobble", &wobble.enabled);
+			ImGui::Checkbox("Periodic Wave", &period.enabled);
+		}
+
+		ImGui::EndChild(); // ##LeftPanel
+		
 		ImGui::SameLine();
 		
-		ImGui::BeginChild("##Canvas", ImVec2(canvas_size.x, 0));
+		ImGui::BeginChild("##CanvasPanel", ImVec2(canvas_size.x, 0));
 		bool display_curve_handle = true;
 		ImGui::Text("Demo: %s", ids[selected_demo]);
 
@@ -794,7 +792,7 @@ void td_demo::display_demo()
 		}
 		}
 
-		ImGui::EndChild();
+		ImGui::EndChild(); // ##Canvas
 
 		ImGui::SameLine();
 		ImGui::BeginChild("##RightPanel", ImVec2(), ImGuiChildFlags_Borders );
@@ -893,7 +891,7 @@ void td_demo::display_demo()
 		}
 		}
 
-		ImGui::EndChild();
+		ImGui::EndChild(); // ##RightPanel
 
 	}
 	ImGui::End();
