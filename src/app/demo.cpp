@@ -388,6 +388,8 @@ void td_demo::display_options()
 
 	ImGui::SeparatorText("Other"); // ===
 
+	ImGui::Checkbox("Show Debug Demos", &cfg.show_debug_demos);
+
 	if (ImGui::Button("Reset demo"))
 	{
 		ImGui::OpenPopup("##PopUpReset");
@@ -494,16 +496,19 @@ void td_demo::display_demo()
 				}
 			}
 
-			if (ImGui::CollapsingHeader("Debug demos"))
+			if (cfg.show_debug_demos)
 			{
-				if (ImGui::BeginChild("##DebugDemoList", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AutoResizeY))
+				if (ImGui::CollapsingHeader("Debug demos"))
 				{
-					for (int i = demo_type_DEBUG_DEMO_START + 1; i < demo_type_ALL_DEMO_COUNT; i += 1)
+					if (ImGui::BeginChild("##DebugDemoList", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AutoResizeY))
 					{
-						ImGui::RadioButton(ids[i], &selected_demo, i);
-					}
+						for (int i = demo_type_DEBUG_DEMO_START + 1; i < demo_type_ALL_DEMO_COUNT; i += 1)
+						{
+							ImGui::RadioButton(ids[i], &selected_demo, i);
+						}
 
-					ImGui::EndChild();
+						ImGui::EndChild();
+					}
 				}
 			}
 

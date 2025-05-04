@@ -126,6 +126,11 @@ struct td_demo
         td_vec2 grab_point_size = td_vec2{ 11.0f, 11.0f };
         float parameter_label_width = 120.0f;
         bool show_background_grid = true;
+#if DEBUG
+        bool show_debug_demos = true;
+#else
+        bool show_debug_demos = false;
+#endif
     } cfg;
 
     td_font_store regular_font;
