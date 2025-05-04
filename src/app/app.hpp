@@ -131,6 +131,11 @@ struct td_demo
 #else
         bool show_debug_demos = false;
 #endif
+#if DEBUG
+        bool show_options_on_left_panel = true;
+#else
+        bool show_options_on_left_panel = false;
+#endif
     } cfg;
 
     td_font_store regular_font;

@@ -389,7 +389,8 @@ void td_demo::display_options()
 	ImGui::SeparatorText("Other"); // ===
 
 	ImGui::Checkbox("Show Debug Demos", &cfg.show_debug_demos);
-
+	ImGui::Checkbox("Show Options On Left Panel", &cfg.show_options_on_left_panel);
+	
 	if (ImGui::Button("Reset demo"))
 	{
 		ImGui::OpenPopup("##PopUpReset");
@@ -512,9 +513,12 @@ void td_demo::display_demo()
 			}
 		}
 
-		if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
+		if (cfg.show_options_on_left_panel)
 		{
-			display_options();
+			if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				display_options();
+			}
 		}
 
 		if (ImGui::CollapsingHeader("Path Effects"))
