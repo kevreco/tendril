@@ -178,7 +178,7 @@ void td_path::arc_to(float rx, float ry, float x_axis_rotation, bool large_arc_f
     float radii = x1x1 / rxrx + y1y1 / ryry;
     if (radii > 1.0f)
     {
-        float sqrt_raddi = sqrt(radii);
+        float sqrt_raddi = td_sqrt(radii);
         rx *= sqrt_raddi;
         ry *= sqrt_raddi;
         rxrx = rx * rx;
@@ -194,7 +194,7 @@ void td_path::arc_to(float rx, float ry, float x_axis_rotation, bool large_arc_f
     if (scale_squared < 0.0f)
         scale_squared = 0.0f;
 
-    float scale = sign * sqrt(scale_squared);
+    float scale = sign * td_sqrt(scale_squared);
 
     float cx1 = scale * ((rx * y1) / ry);
     float cy1 = scale * -((ry * x1) / rx);
@@ -213,19 +213,19 @@ void td_path::arc_to(float rx, float ry, float x_axis_rotation, bool large_arc_f
 
     // start_angle
     sign = (uy < 0.0f) ? -1.0f : 1.0f;
-    float v = ux / sqrt(ux * ux + uy * uy);
+    float v = ux / td_sqrt(ux * ux + uy * uy);
     if (v < -1.0f) v = -1.0f;
     if (v > 1.0f) v = 1.0f;
 
-    float start_angle = sign * acos(v);
+    float start_angle = sign * td_acos(v);
 
     // sweep_angle
     sign = (ux * vy - uy * vx < 0.0f) ? -1.0f : 1.0f;
-    v = ux * vx + uy * vy / sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
+    v = ux * vx + uy * vy / td_sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
     if (v < -1.0f) v = -1.0f;
     if (v > 1.0f) v = 1.0f;
     
-    float sweep_angle = sign * acos(v);
+    float sweep_angle = sign * td_acos(v);
 
     if (!sweep_flag && sweep_angle > 0.0f)
     {
@@ -307,7 +307,7 @@ void td_path::arc(float cx, float cy, float px, float py, float qx, float qy, fl
     float phi = angle_sweep;
     if (angle_sweep > maxphi)
     {
-        nsegs = ceil(angle_sweep / maxphi);
+        nsegs = td_ceil(angle_sweep / maxphi);
         phi = angle_sweep / nsegs;
     }
 
