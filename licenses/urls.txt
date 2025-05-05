@@ -25,6 +25,10 @@ Spiro:
 
 https://github.com/raphlinus/spiro
 
+STB lib:
+
+https://github.com/nothings/stb
+
 Tendrilis font:
 
 https://anomalis.gumroad.com/l/tendrilis-guide
