@@ -20,7 +20,7 @@
 
 #include <string>
 
-namespace ImGui {
+namespace ImGuiEx {
 
 	struct InputTextCallback_UserData
 	{
@@ -59,38 +59,50 @@ namespace ImGui {
 		cb_user_data.Str = str;
 		cb_user_data.ChainCallback = callback;
 		cb_user_data.ChainCallbackUserData = user_data;
-		return InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
+		return ImGui::InputText(label, (char*)str->c_str(), str->capacity() + 1, flags, InputTextCallback, &cb_user_data);
+	}
+
+	static bool InputTextMultiline(const char* label, std::string* str, ImVec2 size = ImVec2(), ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr)
+	{
+		IM_ASSERT((flags & ImGuiInputTextFlags_CallbackResize) == 0);
+		flags |= ImGuiInputTextFlags_CallbackResize;
+
+		InputTextCallback_UserData cb_user_data;
+		cb_user_data.Str = str;
+		cb_user_data.ChainCallback = callback;
+		cb_user_data.ChainCallbackUserData = user_data;
+		return ImGui::InputTextMultiline(label, (char*)str->c_str(), str->capacity() + 1, size, flags, InputTextCallback, &cb_user_data);
 	}
 
 	static bool U32ColorEdit3(const char* label, ImU32* color, ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha)
 	{
-		ImVec4 v = ColorConvertU32ToFloat4(*color);
+		ImVec4 v = ImGui::ColorConvertU32ToFloat4(*color);
 		bool res = ImGui::ColorEdit3(label, (float*)&v, flags);
 		if (res)
 		{
-			*color = ColorConvertFloat4ToU32(v);
+			*color = ImGui::ColorConvertFloat4ToU32(v);
 		}
 		return res;
 	}
 
 	static bool U32ColorEdit4(const char* label, ImU32* color, ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_Uint8)
 	{
-		ImVec4 v = ColorConvertU32ToFloat4(*color);
+		ImVec4 v = ImGui::ColorConvertU32ToFloat4(*color);
 		bool res = ImGui::ColorEdit4(label, (float*)&v, flags);
 		if (res)
 		{
-			*color = ColorConvertFloat4ToU32(v);
+			*color = ImGui::ColorConvertFloat4ToU32(v);
 		}
 		return res;
 	}
 
 	static bool U32ColorPicker3(const char* label, ImU32* color, ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoAlpha)
 	{
-		ImVec4 v = ColorConvertU32ToFloat4(*color);
+		ImVec4 v = ImGui::ColorConvertU32ToFloat4(*color);
 		bool res = ImGui::ColorPicker3(label, (float*)&v, flags);
 		if (res)
 		{
-			*color = ColorConvertFloat4ToU32(v);
+			*color = ImGui::ColorConvertFloat4ToU32(v);
 		}
 		return res;
 	}
@@ -104,9 +116,9 @@ namespace ImGui {
 	static bool InputTextWithoutLabel(const char* label_id, char* buf, size_t buf_len)
 	{
 		float avail_x = ImGui::GetContentRegionAvail().x;
-		PushItemWidth(avail_x);
-		bool b = InputText(label_id, buf, buf_len);
-		PopItemWidth();
+		ImGui::PushItemWidth(avail_x);
+		bool b = ImGui::InputText(label_id, buf, buf_len);
+		ImGui::PopItemWidth();
 		return b;
 	}
 
@@ -127,7 +139,7 @@ namespace ImGui {
         ImGuiContext& g = *GImGui;
         ImGuiWindow* window = g.CurrentWindow;
 
-        if (!ItemAdd(bb, id, NULL, ImGuiItemFlags_NoNav))
+        if (!ImGui::ItemAdd(bb, id, NULL, ImGuiItemFlags_NoNav))
             return false;
 
         // FIXME: AFAIK the only leftover reason for passing ImGuiButtonFlags_AllowOverlap here is
@@ -138,12 +150,12 @@ namespace ImGui {
         bool hovered, held;
         ImRect bb_interact = bb;
         bb_interact.Expand(axis == ImGuiAxis_Y ? ImVec2(0.0f, hover_extend) : ImVec2(hover_extend, 0.0f));
-        ButtonBehavior(bb_interact, id, &hovered, &held, button_flags);
+		ImGui::ButtonBehavior(bb_interact, id, &hovered, &held, button_flags);
         if (hovered)
             g.LastItemData.StatusFlags |= ImGuiItemStatusFlags_HoveredRect; // for IsItemHovered(), because bb_interact is larger than bb
 
         if (held || (hovered && g.HoveredIdPreviousFrame == id && g.HoveredIdTimer >= hover_visibility_delay))
-            SetMouseCursor(axis == ImGuiAxis_Y ? ImGuiMouseCursor_ResizeNS : ImGuiMouseCursor_ResizeEW);
+			ImGui::SetMouseCursor(axis == ImGuiAxis_Y ? ImGuiMouseCursor_ResizeNS : ImGuiMouseCursor_ResizeEW);
 
         ImRect bb_render = bb;
         if (held)
@@ -171,14 +183,14 @@ namespace ImGui {
                 *pos += mouse_delta;
                 bb_render.Translate((axis == ImGuiAxis_X) ? ImVec2(mouse_delta, 0.0f) : ImVec2(0.0f, mouse_delta));
 
-                MarkItemEdited(id);
+				ImGui::MarkItemEdited(id);
             }
         }
 
         // Render at new position
         if (bg_col & IM_COL32_A_MASK)
             window->DrawList->AddRectFilled(bb_render.Min, bb_render.Max, bg_col, 0.0f);
-        const ImU32 col = GetColorU32(held ? ImGuiCol_SeparatorActive : (hovered && g.HoveredIdTimer >= hover_visibility_delay) ? ImGuiCol_SeparatorHovered : ImGuiCol_Separator);
+        const ImU32 col = ImGui::GetColorU32(held ? ImGuiCol_SeparatorActive : (hovered && g.HoveredIdTimer >= hover_visibility_delay) ? ImGuiCol_SeparatorHovered : ImGuiCol_Separator);
         window->DrawList->AddRectFilled(bb_render.Min, bb_render.Max, col, 0.0f);
 
         return held;
@@ -210,10 +222,10 @@ namespace ImGui {
 
 	static inline bool NoPaddingButton(const char* label)
 	{
-		ImGuiContext* g = GetCurrentContext();
+		ImGuiContext* g = ImGui::GetCurrentContext();
 		ImVec2 backup_padding = g->Style.FramePadding;
 		g->Style.FramePadding = ImVec2(0.0f, 0.0f);
-		bool pressed = ButtonEx(label, ImVec2(0, 0), ImGuiButtonFlags_AlignTextBaseLine);
+		bool pressed = ImGui::ButtonEx(label, ImVec2(0, 0), ImGuiButtonFlags_AlignTextBaseLine);
 		g->Style.FramePadding = backup_padding;
 		return pressed;
 	}
@@ -271,7 +283,7 @@ namespace ImGui {
 
 	ImVec4 rgba8_to_vec4(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 	{
-		return ColorConvertU32ToFloat4(IM_COL32(r, g, b, a));
+		return ImGui::ColorConvertU32ToFloat4(IM_COL32(r, g, b, a));
 	}
 
 	ImVec4 vec4_with_alpha(ImVec4 v, float alpha)

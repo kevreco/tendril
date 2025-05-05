@@ -348,15 +348,15 @@ void td_demo::display_options()
 	if (ImGui::TreeNode("Colors"))
 	{
 		ImGui::SetNextItemWidth(item_width);
-		ImGui::U32ColorEdit3("Filling Color##Drawing", green_tendrilis.to_u32_ptr());
+		ImGuiEx::U32ColorEdit3("Filling Color##Drawing", green_tendrilis.to_u32_ptr());
 		ImGui::SetNextItemWidth(item_width);
-		ImGui::U32ColorEdit3("Line Color##Directive", line_color.to_u32_ptr());
+		ImGuiEx::U32ColorEdit3("Line Color##Directive", line_color.to_u32_ptr());
 		ImGui::SetNextItemWidth(item_width);
-		ImGui::U32ColorEdit3("Point Hover Color##Directive", point_hover_color.to_u32_ptr());
+		ImGuiEx::U32ColorEdit3("Point Hover Color##Directive", point_hover_color.to_u32_ptr());
 		ImGui::SetNextItemWidth(item_width);
-		ImGui::U32ColorEdit4("Bg Color##Directive", background_color.to_u32_ptr());
+		ImGuiEx::U32ColorEdit4("Bg Color##Directive", background_color.to_u32_ptr());
 		ImGui::SetNextItemWidth(item_width);
-		ImGui::U32ColorEdit3("Bg Grid Color##Directive", background_grid_color.to_u32_ptr());
+		ImGuiEx::U32ColorEdit3("Bg Grid Color##Directive", background_grid_color.to_u32_ptr());
 
 		ImGui::TreePop();
 	}
@@ -698,7 +698,7 @@ void td_demo::display_demo()
 		{
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
-			ImGui::InputText("Text", &text_on_line.text);
+			ImGuiEx::InputText("Text", &text_on_line.text);
 			ImGui::SliderFloat("Font size", &text_on_line.font_size, 10, max_font_size);
 			display_font_combox("Font ", label_margin, &text_on_line.font_type);
 
@@ -708,7 +708,7 @@ void td_demo::display_demo()
 		{
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
-			ImGui::InputText("Text", &text_on_polyline.text);
+			ImGuiEx::InputText("Text", &text_on_polyline.text);
 			ImGui::SliderFloat("Font size", &text_on_polyline.font_size, 10, max_font_size);
 			display_font_combox("Font ", label_margin, &text_on_polyline.font_type);
 			break;
@@ -717,7 +717,7 @@ void td_demo::display_demo()
 		{
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
-			ImGui::InputText("Text", &text_on_curve.text);
+			ImGuiEx::InputText("Text", &text_on_curve.text);
 			ImGui::SliderFloat("Font size", &text_on_curve.font_size, 10, max_font_size);
 			display_font_combox("Font ", label_margin, &text_on_curve.font_type);
 			break;
@@ -731,7 +731,7 @@ void td_demo::display_demo()
 			
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
-			ImGui::InputText("Text", &tendrilis_on_curve.text);
+			ImGuiEx::InputText("Text", &tendrilis_on_curve.text);
 			ImGui::SliderFloat("Font size", &tendrilis_on_curve.font_size, 10, max_font_size);
 			display_font_combox("Font ", label_margin, &tendrilis_on_curve.font_type);
 			break;
@@ -744,7 +744,7 @@ void td_demo::display_demo()
 
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
-			ImGui::InputText("Text", &spiro.text);
+			ImGuiEx::InputTextMultiline("Text", &spiro.text, ImVec2(0,70));
 			ImGui::SliderFloat("Font size", &spiro.font_size, 10, max_font_size);
 			display_font_combox("Font ", label_margin, &spiro.font_type);
 			break;
@@ -821,7 +821,7 @@ td_demo::canvas_mouse_state td_demo::display_canvas(const td_path& target_path, 
 
 	ImVec2 imgui_cursor_pos = ImGui::GetCursorPos();
 	ImGui::PushID(texture);
-	ImGui::ImageWithBorder((ImTextureID)(intptr_t)texture, canvas_size);
+	ImGuiEx::ImageWithBorder((ImTextureID)(intptr_t)texture, canvas_size);
 
 	if (ImGui::IsItemHovered())
 	{

@@ -102,6 +102,6 @@ static int td_app_show(void* ctx)
 
 static void td_app_preloop(void* ctx)
 {
-    ImGui::ApplyCustomTheme();
-    ImGui::LoadFonts();
+    ImGuiEx::ApplyCustomTheme();
+    ImGuiEx::LoadFonts();
 }
