@@ -27,8 +27,8 @@
 
 #include "tendril_extensions.hpp"
 
-#define TD_CANVAS_WIDTH (720 * 2/3)
-#define TD_CANVAS_HEIGHT (576 * 2/3)
+#define TD_CANVAS_WIDTH (720 *4/5)
+#define TD_CANVAS_HEIGHT (576 * 4/5)
 
 typedef unsigned int texture_handle;
 
@@ -185,7 +185,7 @@ struct td_demo
 
     struct {
         int font_type = td_font_type_REGULAR;
-        const char* id = "Text on bezier curve";
+        const char* id = "Text on curve";
         std::string text = "Hello World";
         float font_size = 45.0f;
         td_path target;

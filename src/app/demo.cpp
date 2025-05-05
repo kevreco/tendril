@@ -372,7 +372,7 @@ void td_demo::display_options()
 
 	ImGui::Checkbox("Show Normals of Path", &cfg.show_normals);
 	ImGui::SetNextItemWidth(item_width);
-	ImGui::InputFloat("Normal Scale", &cfg.normal_scale, 5.0f);
+	ImGui::InputFloat("Scale", &cfg.normal_scale, 5.0f);
 
 	ImGui::SeparatorText("Background"); // ===
 
@@ -495,7 +495,7 @@ void td_demo::display_demo()
 
 	if (window_opened)
 	{
-		ImGui::BeginChild("##LeftPanel", ImVec2(300, 0), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders | ImGuiChildFlags_NavFlattened);
+		ImGui::BeginChild("##LeftPanel", ImVec2(250, 0), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders | ImGuiChildFlags_NavFlattened);
 		
 		if (ImGui::CollapsingHeader("Demos", ImGuiTreeNodeFlags_DefaultOpen))
 		{
