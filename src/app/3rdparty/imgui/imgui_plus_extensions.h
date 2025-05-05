@@ -330,8 +330,8 @@ namespace ImGuiEx {
 		colors[ImGuiCol_WindowBg] = window_background;
 		colors[ImGuiCol_ChildBg] = to_vec4(gray_05, 0.00f);
 		colors[ImGuiCol_PopupBg] = to_vec4(background, 0.94f);
-		colors[ImGuiCol_Border] = to_vec4(vec3_lerp(main_green, gray, 0.40f));
-		colors[ImGuiCol_BorderShadow] = to_vec4(vec3_lerp(main_green, gray, 0.10f));
+		colors[ImGuiCol_Border] = rgba8_to_vec4(110, 120, 130, 103);
+		colors[ImGuiCol_BorderShadow] = rgba8_to_vec4(0, 0, 0, 0);
 		colors[ImGuiCol_Button] = rgba8_to_vec4(113, 149, 158, 102);
 		colors[ImGuiCol_ButtonHovered] = rgba8_to_vec4(103, 129, 135, 255);
 		colors[ImGuiCol_ButtonActive] = rgba8_to_vec4(88, 109, 120, 255);
@@ -343,9 +343,9 @@ namespace ImGuiEx {
 		colors[ImGuiCol_TitleBgCollapsed] = to_vec4(gray_05, 0.51f);
 		colors[ImGuiCol_MenuBarBg] = to_vec4(gray_10, 1.0f);
 		colors[ImGuiCol_ScrollbarBg] = to_vec4(vec3_lerp(background, offWhite, 0.08f), 0.53f);
-		colors[ImGuiCol_ScrollbarGrab] = rgba8_to_vec4(109, 142, 180, 255);
-		colors[ImGuiCol_ScrollbarGrabHovered] = rgba8_to_vec4(133, 159, 190, 255);
-		colors[ImGuiCol_ScrollbarGrabActive] = rgba8_to_vec4(101, 127, 160, 255);
+		colors[ImGuiCol_ScrollbarGrab] = rgba8_to_vec4(97, 111, 127, 255);
+		colors[ImGuiCol_ScrollbarGrabHovered] = rgba8_to_vec4(116, 133, 152, 255);
+		colors[ImGuiCol_ScrollbarGrabActive] = rgba8_to_vec4(84, 108, 136, 255);
 		colors[ImGuiCol_CheckMark] = check_mark_and_slider_grab;
 		colors[ImGuiCol_SliderGrab] = check_mark_and_slider_grab;
 		colors[ImGuiCol_SliderGrabActive] = rgba8_to_vec4(140, 167, 200, 255);
@@ -353,7 +353,7 @@ namespace ImGuiEx {
 		colors[ImGuiCol_Header] = vec4_with_alpha(colors[ImGuiCol_Button], 85.0f / 255.0f);
 		colors[ImGuiCol_HeaderHovered] = vec4_with_alpha(colors[ImGuiCol_ButtonHovered], 200.0f / 255.0f);
 		colors[ImGuiCol_HeaderActive] = vec4_with_alpha(colors[ImGuiCol_ButtonActive], 1.0f);
-		colors[ImGuiCol_Separator] = colors[ImGuiCol_Button];
+		colors[ImGuiCol_Separator] = colors[ImGuiCol_Border];
 		colors[ImGuiCol_SeparatorHovered] = colors[ImGuiCol_ButtonHovered];
 		colors[ImGuiCol_SeparatorActive] = colors[ImGuiCol_ButtonActive];
 		colors[ImGuiCol_ResizeGrip] = colors[ImGuiCol_ScrollbarGrab];
