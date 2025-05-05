@@ -11,7 +11,11 @@
 // This is provided for completeness, however it is strongly recommended you use OpenGL with SDL or GLFW.
 
 
-#if _WIN32
+#ifndef _WIN32
+#error "This backend can only be compiled on Windows."
+#else
+    
+#include "stdio.h"
 
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_win32.h"
@@ -29,18 +33,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include "stdio.h"
-
 #define TO_STR(str) L ## str
 #define STR(str) TO_STR(str)
-
-#else
-
-error "@TODO Handle UNIX-like system"
-
-#define STR(str) str
-
-#endif
 
 // Data stored per platform window
 struct WGL_WindowData { HDC hDC; };
@@ -391,3 +385,5 @@ static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     return ::DefWindowProcW(hWnd, msg, wParam, lParam);
 }
+
+#endif
