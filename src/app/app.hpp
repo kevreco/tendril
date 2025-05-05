@@ -153,6 +153,13 @@ struct td_demo
         int height;
     };
 
+    struct canvas_mouse_state
+    {
+        bool hovered = false;
+        bool clicked = false;
+        td_vec2 pos; // mouse pos
+    };
+
     td_bitmap bitmap;
     td_rasterizer rasterizer;
     texture_handle texture = app_backend::invalid_texture_handle();
@@ -209,7 +216,11 @@ struct td_demo
         td_path target;
         td_path path;
         td_point_array points;
+
+        // Various states for interactions
+        canvas_mouse_state mouse_state;
         td_curve_edit_state edit_state = td_curve_edit_state_EDIT;
+        bool edit_state_changed;
     } draw_tendrilis_spiro;
 
     struct {
@@ -283,14 +294,6 @@ struct td_demo
     void display_demo();
     void display_svg_widget(const td_path& path, float button_width);
 
-
-    struct canvas_mouse_state
-    {
-        bool hovered = false;
-        bool clicked = false;
-        td_vec2 pos; // mouse pos
-    };
-
     // target_path: shape being displayed.
     // pw_path: piecewise path optionally displayed.
     // points: points being display or edited. 
@@ -298,6 +301,8 @@ struct td_demo
     canvas_mouse_state display_canvas_with_bender(path_bender* bender, td_point_array* points);
 
     td_font_store* get_font(int font_type);
+
+    void handle_interactions();
 };
 
 #endif // TD_APP_HPP

@@ -347,6 +347,8 @@ void td_demo::display()
 	td_uint32_memset((uint32_t*)bitmap.data, background_color.to_u32(), TD_CANVAS_WIDTH * TD_CANVAS_HEIGHT);
 
 	display_demo();
+
+	handle_interactions();
 }
 
 void td_demo::display_options()
@@ -639,43 +641,7 @@ void td_demo::display_demo()
 
 			bender.set(spiro.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			canvas_mouse_state mouse_state = display_canvas_with_bender(&bender, &spiro.points);
-
-			bool edit_state_changed = display_curve_toolstrip(&spiro.edit_state);
-
-			// On right click go back to view mode
-			if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-			{
-				edit_state_changed = set_curve_edit_state(&spiro.edit_state, td_curve_edit_state_VIEW) || edit_state_changed;
-			}
-
-			// Add or remove point depending on curve edit state.
-			if (edit_state_changed)
-			{
-				if (spiro.edit_state == td_curve_edit_state_EDIT)
-				{
-					spiro.points.push_back({});
-				}
-				else
-				{
-					spiro.points.erase(spiro.points.end() - 1);
-				}
-			}
-
-			// Update point from mouse position depending on curve edit state.
-			if (spiro.edit_state == td_curve_edit_state_EDIT)
-			{
-				if (mouse_state.hovered)
-				{
-					spiro.points[spiro.points.size() - 1] = mouse_state.pos;
-				}
-
-				if (mouse_state.hovered && mouse_state.clicked)
-				{
-					spiro.points.push_back(mouse_state.pos);
-				}
-			}
-
+			spiro.mouse_state = display_canvas_with_bender(&bender, &spiro.points);
 			break;
 		}
 		case demo_type_DRAW_TENDRILIS_OTHER: {
@@ -847,11 +813,15 @@ void td_demo::display_demo()
 		}
 
 		case demo_type_DRAW_TENDRILIS_SPIRO: {
+
+			auto& spiro = draw_tendrilis_spiro;
+			spiro.edit_state_changed = display_curve_toolstrip(&spiro.edit_state);
+
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
-			ImGui::InputText("Text", &draw_tendrilis_spiro.text);
-			ImGui::SliderFloat("Font size", &draw_tendrilis_spiro.font_size, 10, max_font_size);
-			display_font_combox("Font ", label_margin, &draw_tendrilis_spiro.font_type);
+			ImGui::InputText("Text", &spiro.text);
+			ImGui::SliderFloat("Font size", &spiro.font_size, 10, max_font_size);
+			display_font_combox("Font ", label_margin, &spiro.font_type);
 			break;
 		}
 		case demo_type_DRAW_TENDRILIS_OTHER: {
@@ -1041,6 +1011,50 @@ td_font_store* td_demo::get_font(int font_type)
 	return font_type == td_font_type_REGULAR ? &regular_font : &tendrilis_font;
 }
 
+void td_demo::handle_interactions()
+{
+	switch (selected_demo)
+	{
+	case demo_type_DRAW_TENDRILIS_SPIRO:
+	{
+		auto& spiro = draw_tendrilis_spiro;
+
+		// On right click go back to view mode
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+		{
+			spiro.edit_state_changed = set_curve_edit_state(&spiro.edit_state, td_curve_edit_state_VIEW) || spiro.edit_state_changed;
+		}
+
+		// Add or remove point depending on curve edit state.
+		if (spiro.edit_state_changed)
+		{
+			if (spiro.edit_state == td_curve_edit_state_EDIT)
+			{
+				spiro.points.push_back({});
+			}
+			else
+			{
+				spiro.points.erase(spiro.points.end() - 1);
+			}
+		}
+
+		// Update point from mouse position depending on curve edit state.
+		if (spiro.edit_state == td_curve_edit_state_EDIT)
+		{
+			if (spiro.mouse_state.hovered)
+			{
+				spiro.points[spiro.points.size() - 1] = spiro.mouse_state.pos;
+			}
+
+			if (spiro.mouse_state.hovered && spiro.mouse_state.clicked)
+			{
+				spiro.points.push_back(spiro.mouse_state.pos);
+			}
+		}
+	}
+	}
+}
+
 static void display_bender_overlay(td_demo* demo, const td_point_array* directive_path_points, const td_piecewise_path* directive_pw_path, const td_vec2& point_hovered)
 {
 	const td_point_array* points = directive_path_points;
@@ -1146,6 +1160,9 @@ static bool set_curve_edit_state(td_curve_edit_state* edit_state, td_curve_edit_
 
 static bool display_curve_toolstrip(td_curve_edit_state* edit_state)
 {
+	ImGuiStyle& style = ImGui::GetCurrentContext()->Style;
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
 	bool state_changed = false;
 
 	ImGui::SeparatorText("Toolstrip");
@@ -1153,10 +1170,11 @@ static bool display_curve_toolstrip(td_curve_edit_state* edit_state)
 	struct item_type {
 		td_curve_edit_state state;
 		const char* icon;
-		const char* tooltip;
+		const char* id;
+		const char* text;
 	} items[] = {
-		{td_curve_edit_state_VIEW, ICON_LC_SPLINE, "Move curve point"},
-		{td_curve_edit_state_EDIT, ICON_LC_GIT_BRANCH_PLUS, "Add point to curve" }
+		{td_curve_edit_state_VIEW, ICON_LC_SPLINE, "##1", "Move curve point"},
+		{td_curve_edit_state_EDIT, ICON_LC_GIT_BRANCH_PLUS, "##2", "Add point to curve" }
 	};
 
 	item_type selected_item = items[*edit_state];
@@ -1164,30 +1182,53 @@ static bool display_curve_toolstrip(td_curve_edit_state* edit_state)
 	for (size_t i = 0; i < td_size(items); i += 1)
 	{
 		item_type item = items[i];
+		
+		ImVec2 screen_pos = ImGui::GetCursorScreenPos();
+		float available_width = ImGui::GetContentRegionAvail().x;
+		float item_height = (ImGui::CalcTextSize(item.text) + style.FramePadding * 2).y;
 
-
-		int color = selected_item.state == item.state
-			? ImGuiCol_CheckMark
-			: ImGuiCol_FrameBg;
-
-		ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[color]);
-
-
-		if (ImGui::Button(item.icon))
+		// Add invisible button taking the whole space to have a convenient big box to trigger the "hover" state.
+		if (ImGui::InvisibleButton(item.id, ImVec2(available_width, item_height)))
 		{
 			state_changed = set_curve_edit_state(edit_state, item.state);
 		}
 
-		ImGui::SetItemTooltip(item.tooltip);
+		bool is_hovered = ImGui::IsItemHovered();
+		bool is_selected = selected_item.state == item.state;
 
-		// Restore button color
-		ImGui::PopStyleColor();
+		// Add left mark when mouse is hovering the item
+		ImVec2 left_box_min = ImGui::GetItemRectMin();
+		ImVec2 left_box_max(left_box_min.x + style.FramePadding.x + 1, left_box_min.y + item_height);
 
-		// Display items on the same line
-		if (i != td_size(items) - 1)
+		int color = is_hovered ? ImGuiCol_CheckMark : ImGuiCol_FrameBg;
+		draw_list->AddRectFilled(left_box_min, left_box_max, ImGui::GetColorU32(color));
+
+		// Advance cursor after the left mark
+		ImVec2 left_box_size(left_box_max - left_box_min);
+		screen_pos.x += left_box_size.x;
+
+		// Restore imgui cursor where it was before the invisible button.
+		ImGui::SetCursorScreenPos(screen_pos);
+
+		// Display icon in a non-interactive button with custom color
 		{
-			ImGui::SameLine();
+			ImGui::AlignTextToFramePadding();
+
+			color = is_selected
+				? ImGuiCol_ButtonHovered
+				: ImGuiCol_Button;
+
+			ImVec4 color_vec4 = ImGui::GetStyle().Colors[color];
+			ImGui::PushStyleColor(ImGuiCol_Button, color_vec4);
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color_vec4);
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, color_vec4);
+			ImGui::Button(item.icon);
+			ImGui::PopStyleColor(3);
 		}
+
+		// Display text
+		ImGui::SameLine();
+		ImGui::Text(item.text);
 	}
 
 	return state_changed;
