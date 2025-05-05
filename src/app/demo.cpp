@@ -467,12 +467,33 @@ void td_demo::display_demo()
 
 	path_bender bender;
 
-	const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-	float vp_margin = 20.0f;
-	ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + vp_margin, main_viewport->WorkPos.y + vp_margin), ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowSize(ImVec2(main_viewport->WorkSize.x - (vp_margin * 2), main_viewport->WorkSize.y - (vp_margin * 2)), ImGuiCond_FirstUseEver);
+	ImGuiWindowFlags flags = 0;
 
-	if (ImGui::Begin("Tendril Demo"))
+	if (cfg.fullscreen)
+	{
+		flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
+
+		const ImGuiViewport* main_vp = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(main_vp->WorkPos);
+		ImGui::SetNextWindowSize(main_vp->WorkSize);
+
+		// Remove border
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	}
+	else
+	{
+		const ImGuiViewport* main_vp = ImGui::GetMainViewport();
+		float vp_margin = 20.0f;
+		ImGui::SetNextWindowPos(ImVec2(main_vp->WorkPos.x + vp_margin, main_vp->WorkPos.y + vp_margin), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(main_vp->WorkSize.x - (vp_margin * 2), main_vp->WorkSize.y - (vp_margin * 2)), ImGuiCond_FirstUseEver);
+	}
+
+	bool window_opened = ImGui::Begin("Tendril Demo", NULL, flags);
+
+	// Restore border
+	ImGui::PopStyleVar();
+
+	if (window_opened)
 	{
 		ImGui::BeginChild("##LeftPanel", ImVec2(300, 0), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders | ImGuiChildFlags_NavFlattened);
 		

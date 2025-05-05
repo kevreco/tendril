@@ -117,6 +117,7 @@ struct td_demo
     };
 
     struct {
+        bool fullscreen = true;
         bool show_path = true;
         float path_offset = 2.0f;
         bool show_normals = false;
