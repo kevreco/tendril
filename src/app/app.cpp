@@ -65,6 +65,12 @@ void td_app::display_about_window(bool* p_open)
     if (ImGui::Begin("About", p_open, ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::Text(TD_APP_NAME);
+        ImGui::Text("Tendril is a C++ library dedicated to draw");
+        ImGui::SameLine();
+        ImGui::TextLinkOpenURL("Tendrilis", "https://www.omniglot.com/conscripts/tendrilis.htm");
+        ImGui::Text("A script created by");
+        ImGui::SameLine();
+        ImGui::TextLinkOpenURL("Anomalis", "https://linktr.ee/Tendrilis");
         ImGui::Text("Version: %s (%d)", TD_APP_VERSION_TEXT, TD_APP_VERSION_NUMBER);
         ImGui::Separator();
         ImGui::Text("(c) kevreco");
