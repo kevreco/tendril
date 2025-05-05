@@ -690,7 +690,7 @@ void td_demo::display_demo()
 		ImGui::EndChild(); // ##Canvas
 
 		ImGui::SameLine();
-		ImGui::BeginChild("##RightPanel", ImVec2(), ImGuiChildFlags_Borders );
+		ImGui::BeginChild("##RightPanel", ImVec2(400.0f, 0.0f), ImGuiChildFlags_Borders );
 		
 		switch (selected_demo)
 		{
