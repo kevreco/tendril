@@ -24,7 +24,6 @@ enum demo_type {
 	demo_type_TRIANGLE_ON_CURVE,
 	demo_type_TENDRILIS_ON_CURVE,
 	demo_type_DRAW_TENDRILIS_SPIRO,
-	demo_type_DRAW_TENDRILIS_OTHER,
 
 	demo_type_REGULAR_DEMO_COUNT,
 	demo_type_DEBUG_DEMO_START,
@@ -242,15 +241,6 @@ td_demo::td_demo()
 		}
 	}
 
-	// Draw tendrilis (other)
-	{
-		if (draw_tendrilis_other.edit_state == td_curve_edit_state_EDIT)
-		{
-			// Add first point that will be displayed under the mouse cursor.
-			draw_tendrilis_other.points.push_back({});
-		}
-	}
-
 	//
 	// DEBUG
 	//
@@ -447,7 +437,6 @@ void td_demo::display_demo()
 		triangle_on_curve.id,
 		tendrilis_on_curve.id,
 		draw_tendrilis_spiro.id,
-		draw_tendrilis_other.id,
 		"demo_type_REGULAR_DEMO_COUNT",
 		"demo_type_DEBUG_DEMO_START",
 		rect_on_line.id,
@@ -644,70 +633,6 @@ void td_demo::display_demo()
 			spiro.mouse_state = display_canvas_with_bender(&bender, &spiro.points);
 			break;
 		}
-		case demo_type_DRAW_TENDRILIS_OTHER: {
-
-			auto& other = draw_tendrilis_other;
-
-			td_font_store* font = get_font(other.font_type);
-
-			// Adjust text if tendrilis font is used.
-			if (font == &tendrilis_font)
-			{
-				normalize_tendrilis_text(&other.text);
-			}
-
-			other.target.clear();
-			td::insert_text_to_path(font, other.text.data(), td_vec2(), other.font_size, &other.target);
-			
-			other.path.clear();
-
-			if (other.points.size() > 2)
-			{
-				point_to_path(other.points, &other.path);
-			}
-			td_path* path = apply_various_effect(&other.path);
-
-			bender.set(other.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
-
-			canvas_mouse_state state = display_canvas_with_bender(&bender, &other.points);
-
-			bool edit_state_changed = display_curve_toolstrip(&other.edit_state);
-			
-			// On right click go back to view mode
-			if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-			{
-				edit_state_changed = set_curve_edit_state(&other.edit_state, td_curve_edit_state_VIEW) || edit_state_changed;
-			}
-
-			// Add or remove point depending on curve edit state.
-			if (edit_state_changed)
-			{
-				if (other.edit_state == td_curve_edit_state_EDIT)
-				{
-					other.points.push_back({});
-				}
-				else
-				{
-					other.points.erase(other.points.end() - 1);
-				}
-			}
-
-			// Update point from mouse position depending on curve edit state.
-			if (other.edit_state == td_curve_edit_state_EDIT)
-			{
-				if (state.hovered)
-				{
-					other.points.back() = state.pos;
-				}
-
-				if (state.hovered && state.clicked)
-				{
-					other.points.push_back(state.pos);
-				}
-			}
-	
-			break;
-		}
 		case demo_type_RECT_ON_LINE: {
 
 			td_path* path = apply_various_effect(&rect_on_line.path);
@@ -822,14 +747,6 @@ void td_demo::display_demo()
 			ImGui::InputText("Text", &spiro.text);
 			ImGui::SliderFloat("Font size", &spiro.font_size, 10, max_font_size);
 			display_font_combox("Font ", label_margin, &spiro.font_type);
-			break;
-		}
-		case demo_type_DRAW_TENDRILIS_OTHER: {
-			ImGui::SeparatorText("Parameters");
-			ImGui::Spacing();
-			ImGui::InputText("Text", &draw_tendrilis_other.text);
-			ImGui::SliderFloat("Font size", &draw_tendrilis_other.font_size, 10, max_font_size);
-			display_font_combox("Font ", label_margin, &draw_tendrilis_other.font_type);
 			break;
 		}
 		case demo_type_RECT_ON_LINE: {

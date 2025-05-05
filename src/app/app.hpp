@@ -223,17 +223,6 @@ struct td_demo
         bool edit_state_changed;
     } draw_tendrilis_spiro;
 
-    struct {
-        int font_type = td_font_type_TENDRILIS;
-        const char* id = "Draw Tendrilis (Other)";
-        std::string text = "Draw tendrilis";
-        float font_size = 30.0f;
-        td_point_array points;
-        td_path target;
-        td_path path;
-        td_curve_edit_state edit_state = td_curve_edit_state_EDIT;
-    } draw_tendrilis_other;
-
     // Debug demo
 
     struct {
