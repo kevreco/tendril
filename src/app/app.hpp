@@ -88,6 +88,7 @@ struct td_app : app_backend {
 
     // Config
     struct {
+        int imgui_theme_selected = 0;
         bool show_demo_window = true;
         bool show_about_window = false;
         bool show_feedback_window = false;

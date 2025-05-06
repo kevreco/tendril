@@ -52,6 +52,26 @@ void td_app::display_main_menu_bar()
 #endif
         if (ImGui::BeginMenu("Options"))
         {
+            if (ImGui::BeginMenu("Theme"))
+            {
+                if (ImGui::RadioButton("Default", cfg.imgui_theme_selected == 0))
+                {
+                    ImGuiEx::ApplyCustomTheme();
+                    cfg.imgui_theme_selected = 0;
+                }
+                if (ImGui::RadioButton("Dark", cfg.imgui_theme_selected == 1))
+                {
+                    ImGui::StyleColorsDark();
+                    cfg.imgui_theme_selected = 1;
+                }
+                if (ImGui::RadioButton("Light", cfg.imgui_theme_selected == 2))
+                {
+                    ImGuiEx::ApplyCustomLightTheme();
+                    cfg.imgui_theme_selected = 2;
+                }
+                ImGui::EndMenu();
+            }
+
             ImGui::EndMenu();
         }
 
