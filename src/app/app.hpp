@@ -10,8 +10,8 @@
 #define TD_APP_NAME "Tendril"
 
 /* Version of the application. */
-#define TD_APP_VERSION_NUMBER (1)
-#define TD_APP_VERSION_TEXT "0.0.1-dev"
+#define TD_APP_VERSION_NUMBER (2)
+#define TD_APP_VERSION_TEXT "0.0.2-dev"
 
 // Prevent windows to add the min/max macro
 #define NOMINMAX
