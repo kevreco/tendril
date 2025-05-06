@@ -43,12 +43,13 @@ void td_app::display_main_menu_bar()
 {
     if (ImGui::BeginMainMenuBar())
     {
+#if DEBUG
         if (ImGui::BeginMenu("View"))
         {
             ImGui::MenuItem("Show Demo", NULL, &cfg.show_demo_window);
             ImGui::EndMenu();
         }
-
+#endif
         if (ImGui::BeginMenu("Options"))
         {
             ImGui::EndMenu();
