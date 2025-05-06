@@ -37,6 +37,8 @@ void td_app::render()
     {
         demo.display();
     }
+
+    display_main_menu_bar_low_priority();
 }
 
 void td_app::display_main_menu_bar()
@@ -50,6 +52,37 @@ void td_app::display_main_menu_bar()
             ImGui::EndMenu();
         }
 #endif
+        // Add option menu after the "View" menu and the "Help" menu, it will be populated later.
+        if (ImGui::BeginMenu("Options"))
+        {
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Help"))
+        {
+            if (ImGui::MenuItem("Feedback", NULL, &cfg.show_feedback_window))
+            {
+                // Bring about window to front
+                ImGui::SetWindowFocus("Feedback");
+            }
+
+            if (ImGui::MenuItem("About", NULL, &cfg.show_about_window))
+            {
+                // Bring about window to front
+                ImGui::SetWindowFocus("About");
+            }
+           
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+}
+
+void td_app::display_main_menu_bar_low_priority()
+{
+    if (ImGui::BeginMainMenuBar())
+    {
         if (ImGui::BeginMenu("Options"))
         {
             if (ImGui::BeginMenu("Theme"))
@@ -72,23 +105,6 @@ void td_app::display_main_menu_bar()
                 ImGui::EndMenu();
             }
 
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("Help"))
-        {
-            if (ImGui::MenuItem("Feedback", NULL, &cfg.show_feedback_window))
-            {
-                // Bring about window to front
-                ImGui::SetWindowFocus("Feedback");
-            }
-
-            if (ImGui::MenuItem("About", NULL, &cfg.show_about_window))
-            {
-                // Bring about window to front
-                ImGui::SetWindowFocus("About");
-            }
-           
             ImGui::EndMenu();
         }
 

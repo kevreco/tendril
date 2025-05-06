@@ -99,6 +99,7 @@ struct td_app : app_backend {
 
     void render();
     void display_main_menu_bar();
+    void display_main_menu_bar_low_priority();
     void display_about_window(bool* p_open);
     void display_feedback_window(bool* p_open);
 };
