@@ -23,6 +23,11 @@ void td_app::render()
 {
     display_main_menu_bar();
 
+    if (cfg.show_feedback_window)
+    {
+        display_feedback_window(&cfg.show_feedback_window);
+    }
+
     if (cfg.show_about_window)
     {
         display_about_window(&cfg.show_about_window);
@@ -49,11 +54,21 @@ void td_app::display_main_menu_bar()
             ImGui::EndMenu();
         }
 
-        if (ImGui::MenuItem("About"))
+        if (ImGui::BeginMenu("Help"))
         {
-            cfg.show_about_window = true;
-            // Bring about window to front
-            ImGui::SetWindowFocus("About");
+            if (ImGui::MenuItem("Feedback", NULL, &cfg.show_feedback_window))
+            {
+                // Bring about window to front
+                ImGui::SetWindowFocus("Feedback");
+            }
+
+            if (ImGui::MenuItem("About", NULL, &cfg.show_about_window))
+            {
+                // Bring about window to front
+                ImGui::SetWindowFocus("About");
+            }
+           
+            ImGui::EndMenu();
         }
 
         ImGui::EndMainMenuBar();
@@ -62,15 +77,16 @@ void td_app::display_main_menu_bar()
 
 void td_app::display_about_window(bool* p_open)
 {
-    if (ImGui::Begin("About", p_open, ImGuiWindowFlags_AlwaysAutoResize))
+    if (ImGui::Begin("About", p_open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse))
     {
         ImGui::Text(TD_APP_NAME);
         ImGui::Text("Tendril is a C++ library dedicated to draw");
         ImGui::SameLine();
         ImGui::TextLinkOpenURL("Tendrilis", "https://www.omniglot.com/conscripts/tendrilis.htm");
-        ImGui::Text("A script created by");
+        ImGui::Text("Tendrilis is script created by");
         ImGui::SameLine();
         ImGui::TextLinkOpenURL("Anomalis", "https://linktr.ee/Tendrilis");
+        ImGui::Separator();
         ImGui::Text("Version: %s (%d)", TD_APP_VERSION_TEXT, TD_APP_VERSION_NUMBER);
         ImGui::Separator();
         ImGui::Text("(c) kevreco");
@@ -93,6 +109,31 @@ void td_app::display_about_window(bool* p_open)
 #ifdef SOURCE_REVISION
         ImGui::Text("Source revision: %s", TD_XSTR(SOURCE_REVISION));
 #endif
+    }
+    ImGui::End();
+}
+
+void td_app::display_feedback_window(bool* p_open)
+{
+    if (ImGui::Begin("Feedback", p_open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse))
+    {
+        ImGui::Text("Any suggestion or feedback?");
+        ImGui::Text("Feel free to send an email to:");
+        // NOTE: The email address is not pre-concatenated as a poor attempt to avoid bot spam.
+        static char address[] = "tendril.draw" "?" "outlook" ".com";
+        for (size_t i = 0; i < sizeof(address); i += 1)
+        {
+            if (address[i] == '?')
+            {
+                address[i] = '@';
+            }
+        }
+        ImGui::InputText("##Email", address, sizeof(address), ImGuiInputTextFlags_ReadOnly);
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_LC_COPY))
+        {
+            ImGui::SetClipboardText(address);
+        }
     }
     ImGui::End();
 }

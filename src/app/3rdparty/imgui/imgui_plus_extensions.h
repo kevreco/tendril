@@ -399,7 +399,7 @@ namespace ImGuiEx {
 		//icons_config.OversampleV = 1;
 		//icons_config.OversampleH = 1;
 		icons_config.MergeMode = true;
-		icons_config.GlyphOffset.y = 2.0f;
+		icons_config.GlyphOffset.y = 3.0f;
 		io.Fonts->AddFontFromFileTTF(IMGUI_EXTENSION_ICONS_FONT, 18.0f, &icons_config, icons_ranges);
 		io.Fonts->Build();
 	}

@@ -90,6 +90,7 @@ struct td_app : app_backend {
     struct {
         bool show_demo_window = true;
         bool show_about_window = false;
+        bool show_feedback_window = false;
     } cfg;
 
     td_app();
@@ -98,6 +99,7 @@ struct td_app : app_backend {
     void render();
     void display_main_menu_bar();
     void display_about_window(bool* p_open);
+    void display_feedback_window(bool* p_open);
 };
 
 struct path_bender;
