@@ -2,6 +2,9 @@ name: builds
 
 on:
   push:
+    # NOTE: 'branches' and 'branches-ignore' cannot be used at the same time.
+    branches-ignore: # Don't build for webpage since it has its own workflow.
+      - webpage
     paths-ignore: # Don't build for Markdown file change.
       - '**.md'
   pull_request:
