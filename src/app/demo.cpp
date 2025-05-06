@@ -753,7 +753,7 @@ void td_demo::display_demo()
 			
 			ImGui::SeparatorText("Parameters");
 			ImGui::Spacing();
-			ImGuiEx::InputText("Text", &tendrilis_on_curve.text);
+			ImGuiEx::InputTextMultiline("Text", &tendrilis_on_curve.text, ImVec2(0, 70));
 			ImGui::SliderFloat("Font size", &tendrilis_on_curve.font_size, 10, max_font_size);
 			display_font_combox("Font ", label_margin, &tendrilis_on_curve.font_type);
 			break;
