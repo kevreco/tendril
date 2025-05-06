@@ -329,7 +329,7 @@ namespace ImGuiEx {
 		colors[ImGuiCol_TextDisabled] = to_vec4(0.50f, 0.50f, 0.50f);
 		colors[ImGuiCol_WindowBg] = window_background;
 		colors[ImGuiCol_ChildBg] = to_vec4(gray_05, 0.00f);
-		colors[ImGuiCol_PopupBg] = to_vec4(background, 0.94f);
+		colors[ImGuiCol_PopupBg] = vec4_with_alpha(colors[ImGuiCol_WindowBg], 235.0f / 255.0f);
 		colors[ImGuiCol_Border] = rgba8_to_vec4(110, 120, 130, 103);
 		colors[ImGuiCol_BorderShadow] = rgba8_to_vec4(0, 0, 0, 0);
 		colors[ImGuiCol_Button] = rgba8_to_vec4(113, 149, 158, 102);
