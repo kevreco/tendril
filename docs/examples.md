@@ -26,6 +26,7 @@ Stroke Tendrilis based on font.
 
 ## Export SVG
 
-Export path to .svg
+The first svg has been exported using absolute values while the second was exported using relative values.
 
-![svg_export](examples/svg_export.svg)
+![export_absolute](examples/export_absolute.svg)
+![export_relative](examples/export_relative.svg)

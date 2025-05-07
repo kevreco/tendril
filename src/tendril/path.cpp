@@ -684,42 +684,105 @@ void td::path_to_svg_file(const td_path& path, const char* filename, size_t widt
 //    </svg>
 void td::path_to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color, int svg_options)
 {
+    const char* stroke_color = "none";
+    const char* fill_color = color;
+
+    if (svg_options & td_svg_options_STROKE)
+    {
+        stroke_color = color;
+        fill_color = "none";
+    }
+
+    const char* stroke_type = svg_options & td_svg_options_FILL ? "fill" : "stroke";
     const char* path_type = svg_options & td_svg_options_FILL ? "fill" : "stroke";
+
+    bool relative = svg_options & td_svg_options_RELATIVE_COORD ? true : false;
 
     fprintf(file, "<svg width=\"%zu\" height=\"%zu\" xmlns=\"http://www.w3.org/2000/svg\">", width, height);
     fprintf(file, "\n  <path d=\"");
 
     td_path_iterator it(path);
-    while (it.get_next())
+ 
+    if (relative)
     {
-        switch (it.cmd)
+        float last_move_x = 0.0f;
+        float last_move_y = 0.0f;
+        float last_x = 0.0f;
+        float last_y = 0.0f;
+
+        while (it.get_next())
         {
-        case td_path_cmd_MOVE_TO:
-        {
-            fprintf(file, "M %f %f ", it.points[0].x, it.points[0].y);
-            break;
+            switch (it.cmd)
+            {
+            case td_path_cmd_MOVE_TO:
+            {
+                fprintf(file, "m %f %f ", it.points[0].x - last_x, it.points[0].y - last_y);
+                last_x = it.points[0].x;
+                last_y = it.points[0].y;
+                last_move_x = it.points[0].x;
+                last_move_y = it.points[0].y;
+                break;
+            }
+            case td_path_cmd_LINE_TO:
+            {
+                fprintf(file, "l %f %f ", it.points[0].x - last_x, it.points[0].y - last_y);
+                last_x = it.points[0].x;
+                last_y = it.points[0].y;
+                break;
+            }
+            case td_path_cmd_CUBIC_TO:
+            {
+                fprintf(file, "c %f %f %f %f %f %f ",
+                    it.points[0].x - last_x, it.points[0].y - last_y, it.points[1].x - last_x, it.points[1].y - last_y, it.points[2].x - last_x, it.points[2].y - last_y);
+                last_x = it.points[2].x;
+                last_y = it.points[2].y;
+                break;
+            }
+            case td_path_cmd_CLOSE:
+            {
+                last_x = last_move_x;
+                last_y = last_move_y;
+                fprintf(file, "z ");
+                break;
+            }
+            default:
+                TD_ASSERT(0 && "Unreachable");
+            }
         }
-        case td_path_cmd_LINE_TO:
+    }
+    else
+    {
+        while (it.get_next())
         {
-            fprintf(file, "L %f %f ", it.points[0].x, it.points[0].y);
-            break;
-        }
-        case td_path_cmd_CUBIC_TO:
-        {
-            fprintf(file, "Q %f %f %f %f %f %f ", it.points[0].x, it.points[0].y, it.points[1].x, it.points[1].y, it.points[2].x, it.points[2].y);
-            break;
-        }
-        case td_path_cmd_CLOSE:
-        {
-            fprintf(file, "Z ");
-            break;
-        }
-        default:
-            TD_ASSERT(0 && "Unreachable");
+            switch (it.cmd)
+            {
+            case td_path_cmd_MOVE_TO:
+            {
+                fprintf(file, "M %f %f ", it.points[0].x, it.points[0].y);
+                break;
+            }
+            case td_path_cmd_LINE_TO:
+            {
+                fprintf(file, "L %f %f ", it.points[0].x, it.points[0].y);
+                break;
+            }
+            case td_path_cmd_CUBIC_TO:
+            {
+                fprintf(file, "C %f %f %f %f %f %f ", it.points[0].x, it.points[0].y, it.points[1].x, it.points[1].y, it.points[2].x, it.points[2].y);
+                break;
+            }
+            case td_path_cmd_CLOSE:
+            {
+                fprintf(file, "Z ");
+                break;
+            }
+            default:
+                TD_ASSERT(0 && "Unreachable");
+            }
         }
     }
 
-    fprintf(file, "\"\n style=\" %s:%s; \" />", path_type, color);
+    fprintf(file, "\"\n style=\" fill:%s; stroke:%s\" />", fill_color, stroke_color);
     fprintf(file, "\n</svg>");
 }
 
