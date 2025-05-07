@@ -3,7 +3,7 @@
 
 //  Table of content:
 //    
-//    tendril.cpp
+//    tendril.hpp
 // 
 //      td_arena
 // 
@@ -15,6 +15,10 @@
 //      td_path_printer
 //      td_bezier_traverser
 //      td_path_to_piecewise
+//      td_skip_whitespace
+//      td_parse_float
+//      td_parse_svg_numbers
+//      td_parse_zero_or_one
 //
 
 // ============================================================================
@@ -420,4 +424,147 @@ void td_transform_inserter::func(void* ctx, td_path_cmd cmd, const td_vec2* poin
     default:
         TD_ASSERT(0 && "Unreachable");
     }
+}
+
+const char* td_skip_whitespace(const char* begin, const char* end)
+{
+    const char* cursor = begin;
+    while (cursor < end && TD_IS_WHITESPACE(cursor[0]))
+    {
+        cursor += 1;
+    }
+    return cursor;
+}
+
+// Adapted from https://github.com/nothings/stb/blob/master/stb_c_lexer.h
+int td_parse_float(const char* p, const char* end, float* result)
+{
+    const char* s = p;
+    double value = 0;
+    int base = 10;
+    int exponent = 0;
+    bool minus = false;
+
+    if (p < end)
+    {
+        if (p[0] == '+')
+        {
+            p += 1;
+        }
+        else if (p[0] == '-')
+        {
+            minus = true;
+            p += 1;
+        }
+    }
+    if (p >= end)
+    {
+        *result = (float)(minus ? -value : value);
+        return p - s;
+    }
+
+    while (p < end) {
+        if (*p >= '0' && *p <= '9')
+            value = value * base + (*p++ - '0');
+        else
+            break;
+    }
+
+    if (p >= end)
+    {
+        *result = (float)(minus ? -value : value);
+        return p - s;
+    }
+
+    if (*p == '.') {
+        double pow, addend = 0;
+        ++p;
+        for (pow = 1; p < end; pow *= base) {
+            if (*p >= '0' && *p <= '9')
+                addend = addend * base + (*p++ - '0');
+            else
+                break;
+        }
+        value += addend / pow;
+    }
+
+    if (p >= end)
+    {
+        *result = (float)(minus ? -value : value);
+        return p - s;
+    }
+
+    exponent = (*p == 'e' || *p == 'E');
+
+    if (exponent)
+    {
+        int sign = p[1] == '-';
+        unsigned int exponent = 0;
+        double power = 1;
+        ++p;
+        if (p < end && (*p == '-' || *p == '+'))
+            ++p;
+        while (p < end && (*p >= '0' && *p <= '9'))
+            exponent = exponent * 10 + (*p++ - '0');
+
+        power = td_pow(10, exponent);
+        if (sign)
+            value /= power;
+        else
+            value *= power;
+    }
+
+    *result = (float)(minus ? -value : value);
+
+    return p - s;
+}
+
+int td_parse_svg_numbers(const char* cursor, const char* end, float* values, int count)
+{
+    const char* s = cursor;
+    for (int i = 0; i < count; i += 1)
+    {
+        cursor = td_skip_whitespace(cursor, end);
+
+        int advance = td_parse_float(cursor, end, values + i);
+        if (!advance)
+        {
+            return 0;
+        }
+        cursor += advance;
+
+        cursor = td_skip_whitespace(cursor, end);
+        if (cursor < end && cursor[0] == ',')
+            cursor += 1;
+        cursor = td_skip_whitespace(cursor, end);
+
+    }
+
+    return cursor - s;
+}
+
+int td_parse_zero_or_one(const char* cursor, const char* end, bool* flag)
+{
+    const char* s = cursor;
+    cursor = td_skip_whitespace(cursor, end);
+
+    if (cursor < end)
+    {
+        if (cursor[0] == '1')
+        {
+            *flag = true;
+            cursor += 1;
+        }
+        else if (cursor[0] == '0')
+        {
+            *flag = false;
+            cursor += 1;
+        }
+    }
+
+    cursor = td_skip_whitespace(cursor, end);
+    if (cursor < end && cursor[0] == ',')
+        cursor += 1;
+    cursor = td_skip_whitespace(cursor, end);
+    return cursor - s;
 }

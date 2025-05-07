@@ -25,6 +25,7 @@
 #define TD_IS_WHITESPACE(ch) ((ch) == ' ' || (ch) == '\t' || (ch) == '\r' || (ch) == '\n')
 #define TD_IS_NUM(ch) ((ch) >= '0' && (ch) <= '9')
 #define TD_IS_ALPHA(ch) (((ch) >= 'a' && (ch) <= 'z') || ((ch) >= 'A' && (ch) <= 'Z'))
+#define TD_IS_LOWER(ch) ((ch) >= 'a' && (ch) <= 'z')
 #define TD_IS_ALPHANUM(ch) (TD_IS_ALPHA(ch) || TD_IS_NUM(ch))
 
 #define TD_PI 3.14159265358979323846f
@@ -236,15 +237,17 @@ struct td_transform_inserter {
 };
 
 
-static inline const char* td_skip_whitespace(const char* begin, const char* end)
-{
-    const char* cursor = begin;
-    while (cursor < end && TD_IS_WHITESPACE(cursor[0]))
-    {
-        cursor += 1;
-    }
-    return cursor;
-}
+// Skip whitespace from string. Returns pointer to the advanced string.
+const char* td_skip_whitespace(const char* begin, const char* end);
+
+// Parse float from string. Returns number of character parsed.
+int td_parse_float(const char* p, const char* end, float* result);
+
+// Parse N (count) float numbers from string. Returns number of character parsed.
+int td_parse_svg_numbers(const char* cursor, const char* end, float* values, int count);
+
+// Parse 1 or 0. Returns one if successful, 0 otherwise.
+int td_parse_zero_or_one(const char* cursor, const char* end, bool* flag);
 
 //=============================================================================
 // font.cpp

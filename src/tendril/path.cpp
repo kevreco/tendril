@@ -786,6 +786,323 @@ void td::path_to_svg_file(const td_path& path, FILE* file, size_t width, size_t 
     fprintf(file, "\n</svg>");
 }
 
+bool td::path_from_svg_path(td_path* path, const char* data, size_t len)
+{
+    const char* cursor = data;
+    const char* end = cursor + len;
+
+    float numbers[6];
+
+    td_vec2 previous_move_to;
+    td_vec2 current;
+    td_vec2 last_control_point;
+
+    char cmd = 0;
+    char previous_cmd = 0;
+    int advance = 0;
+    td_skip_whitespace(cursor, end);
+
+    while (cursor < end)
+    {
+        if (TD_IS_ALPHA(cursor[0]))
+        {
+            cmd = cursor[0];
+            cursor += 1;
+            cursor = td_skip_whitespace(cursor, end);
+        }
+        // Path does not start with move_to
+        if (!previous_cmd && !(cmd == 'M' || cmd == 'm'))
+        {
+            return false;
+        }
+
+        bool using_relative_coord = TD_IS_LOWER(cmd);
+        switch (cmd)
+        {
+        // arc_to: elliptical arc
+        //   A rx ry rotation large-arc-flag sweep-flag x y
+        case 'a':
+        case 'A':
+        {
+            bool large_arc_flag = 0;
+            bool sweep_flag = 0;
+
+            advance = td_parse_svg_numbers(cursor, end, numbers, 3);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            advance = td_parse_zero_or_one(cursor, end, &large_arc_flag);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            advance = td_parse_zero_or_one(cursor, end, &sweep_flag);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            advance = td_parse_svg_numbers(cursor, end, numbers + 3, 2);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            if (using_relative_coord)
+            {
+                numbers[3] += current.x;
+                numbers[4] += current.y;
+            }
+
+            path->arc_to(numbers[0], numbers[1], TD_DEGTORAD(numbers[2]), large_arc_flag, sweep_flag, numbers[3], numbers[4]);
+            current.x = numbers[3];
+            current.y = numbers[4];
+            
+        }
+        // curve_to: create cubic curve
+        //   C cx1 cy1 cx2 cy2 x y
+        case 'c':
+        case 'C':
+        {
+            advance = td_parse_svg_numbers(cursor, end, numbers, 6);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            if (using_relative_coord)
+            {
+                numbers[0] += current.x;
+                numbers[1] += current.y;
+                numbers[2] += current.x;
+                numbers[3] += current.y;
+                numbers[4] += current.x;
+                numbers[5] += current.y;
+            }
+
+            path->cubic_to(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5]);
+            last_control_point.x = numbers[2];
+            last_control_point.y = numbers[3];
+            current.x = numbers[4];
+            current.y = numbers[5];
+            break;
+        }
+        // Horizontal line_to:
+        //   H x
+        case 'h':
+        case 'H':
+        {
+            advance = td_parse_svg_numbers(cursor, end, numbers, 1);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            if (using_relative_coord)
+            {
+                numbers[0] += current.x;
+            }
+
+            path->line_to(numbers[0], current.y);
+            current.x = numbers[0];
+            break;
+        }
+        // line_to:
+        //   L x y
+        case 'l':
+        case 'L':
+        {
+            advance = td_parse_svg_numbers(cursor, end, numbers, 2);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            if (using_relative_coord)
+            {
+                numbers[0] += current.x;
+                numbers[1] += current.y;
+            }
+
+            path->line_to(numbers[0], numbers[1]);
+            current.x = numbers[0];
+            current.y = numbers[1];
+            break;
+        }
+        // move_to:
+        //   M x y
+        case 'm':
+        case 'M':
+        {
+            advance = td_parse_svg_numbers(cursor, end, numbers, 2);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            if (using_relative_coord)
+            {
+                numbers[0] += current.x;
+                numbers[1] += current.y;
+            }
+
+            path->move_to(numbers[0], numbers[1]);
+            current.x = numbers[0];
+            current.y = numbers[1];
+            previous_move_to.x = numbers[0];
+            previous_move_to.y = numbers[1];
+
+            // Pretend the command was a line for the last_command
+            cmd = using_relative_coord ? 'l' : 'L';
+            break;
+        }
+        // quad_to: quadratic bezier curve
+        //   Q cx1 cy1 x y
+        case 'q':
+        case 'Q':
+        {
+            advance = td_parse_svg_numbers(cursor, end, numbers, 4);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            if (using_relative_coord)
+            {
+                numbers[0] += current.x;
+                numbers[1] += current.y;
+                numbers[2] += current.x;
+                numbers[3] += current.y;
+            }
+
+            path->quad_to(numbers[0], numbers[1], numbers[2], numbers[3]);
+            last_control_point.x = numbers[0];
+            last_control_point.y = numbers[1];
+            current.x = numbers[2];
+            current.y = numbers[3];
+            break;
+        }
+        // smooth/shortand cubic_to
+        //   S cx2 cy2 x y
+        case 's':
+        case 'S':
+        {
+            if (previous_cmd != 'C' && previous_cmd != 'c'
+                && previous_cmd != 'S' && previous_cmd != 's')
+            {
+                numbers[0] = current.x;
+                numbers[1] = current.y;
+            }
+            else
+            {
+                numbers[0] = 2 * current.x - last_control_point.x;
+                numbers[1] = 2 * current.y - last_control_point.y;
+            }
+
+            advance = td_parse_svg_numbers(cursor, end, numbers + 2, 4);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            if (using_relative_coord)
+            {
+                numbers[2] += current.x;
+                numbers[3] += current.y;
+                numbers[4] += current.x;
+                numbers[5] += current.y;
+            }
+
+            path->cubic_to(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5]);
+            last_control_point.x = numbers[2];
+            last_control_point.y = numbers[3];
+            current.x = numbers[4];
+            current.y = numbers[5];
+            break;
+        }
+        // Smooth/shorthand quadratic bezier curve
+        //   T x y
+        case 't':
+        case 'T':
+        {
+            if (previous_cmd != 'Q' && previous_cmd != 'q'
+                && previous_cmd != 'T' && previous_cmd != 't')
+            {
+                numbers[0] = current.x;
+                numbers[1] = current.y;
+            }
+            else
+            {
+                numbers[0] = (current.x * 2) - last_control_point.x;
+                numbers[1] = (current.y * 2) - last_control_point.y;
+            }
+
+            advance = td_parse_svg_numbers(cursor, end, numbers + 2, 2);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            if (using_relative_coord)
+            {
+                numbers[2] += current.x;
+                numbers[3] += current.y;
+            }
+
+            path->quad_to(numbers[0], numbers[1], numbers[2], numbers[3]);
+            last_control_point.x = numbers[0];
+            last_control_point.y = numbers[1];
+            current.x = numbers[2];
+            current.y = numbers[3];
+            break;
+        }
+        // Vertical line_to:
+        //   V y
+        case 'v':
+        case 'V':
+        {
+            advance = td_parse_svg_numbers(cursor, end, numbers, 1);
+
+            if (!advance)
+                return false;
+            cursor += advance;
+
+            if (using_relative_coord)
+            {
+                numbers[1] += current.y;
+            }
+
+            path->line_to(current.x, numbers[1]);
+            current.y = numbers[1];
+            break;
+        }
+        // close_to:
+        //   Z
+        case 'z':
+        case 'Z':
+        {
+            if (previous_cmd == 'Z' || previous_cmd == 'z')
+                return false;
+
+            path->close();
+            
+            current.x = previous_move_to.x;
+            current.y = previous_move_to.y;
+            break;
+        }
+        default:
+            return false;
+        }
+
+        previous_cmd = cmd;
+    }
+
+    return true;
+}
+
 td_vec2 td::transform_along_piecewise(const td_piecewise_path& pw, const td_vec2& p, bool interpolate_tangent)
 {
     float t = p.x;

@@ -777,6 +777,9 @@ namespace td {
     // Create SVG file with a single path.
     void path_to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color = "black", int option = td_svg_options_DEFAULT);
 
+    // Load path from the SVG "g" part.
+    bool path_from_svg_path(td_path* path, const char* data, size_t length);
+
     td_vec2 transform_along_piecewise(const td_piecewise_path& pw, const td_vec2& p, bool smooth);
     void transform_along_piecewise(const td_piecewise_path& pw, td_point_array* points, bool smooth);
 
