@@ -87,6 +87,40 @@ static const char* build_with(const char* config)
     cb_try_copy_file_to_dir("./resources/TendrilisExtra-Regular.ttf", out);
     cb_try_copy_file_to_dir("./resources/Tendrilis-v2-Regular.ttf", out);
 
+
+    /* Build and run examples. */
+    {
+        struct example_item {
+            const char* name;
+            const char* filepath;
+        } examples[] =
+        {
+            "example_01_stroke", "./src/examples/01_stroke.cpp",
+            "example_02_fill",   "./src/examples/02_fill.cpp",
+            "example_03_text",   "./src/examples/03_text.cpp",
+        };
+
+        int example_count = sizeof(examples) / sizeof(examples[0]);
+
+        for (int i = 0; i < example_count; i += 1)
+        {
+            my_project(examples[i].name, toolchain_name, config);
+
+            cb_add(cb_LINK_PROJECTS, "tendril");
+
+            cb_set(cb_BINARY_TYPE, cb_EXE);
+
+            cb_add(cb_FILES, examples[i].filepath);
+
+            cb_add(cb_INCLUDE_DIRECTORIES, "./src/tendril/");
+            
+            // Run example
+            const char* example_exe = cb_bake();
+            const char* example_out_dir = cb_get_output_directory(cb_current_project(), &tool_chain);
+            cb_process_in_directory(example_exe, example_out_dir);
+        }
+    }
+
 #ifndef CI
 
     /* Launch .exe */
