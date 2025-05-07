@@ -308,7 +308,7 @@ void td_path::arc(float cx, float cy, float px, float py, float qx, float qy, fl
     float phi = angle_sweep;
     if (angle_sweep > maxphi)
     {
-        nsegs = td_ceil(angle_sweep / maxphi);
+        nsegs = (int)td_ceil(angle_sweep / maxphi);
         phi = angle_sweep / nsegs;
     }
 
