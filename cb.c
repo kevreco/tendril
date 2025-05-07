@@ -95,9 +95,10 @@ static const char* build_with(const char* config)
             const char* filepath;
         } examples[] =
         {
-            "example_01_stroke", "./src/examples/01_stroke.cpp",
-            "example_02_fill",   "./src/examples/02_fill.cpp",
-            "example_03_text",   "./src/examples/03_text.cpp",
+            "example_01_stroke",    "./src/examples/01_stroke.cpp",
+            "example_02_fill",      "./src/examples/02_fill.cpp",
+            "example_03_text",      "./src/examples/03_text.cpp",
+            "example_04_tendrilis", "./src/examples/04_tendrilis.cpp",
         };
 
         int example_count = sizeof(examples) / sizeof(examples[0]);
