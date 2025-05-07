@@ -248,7 +248,7 @@ void td_path::arc_to(float rx, float ry, float x_axis_rotation, bool large_arc_f
 }
 
 // Based on:
-//   "Drawing ellipses and elliptical arcs with piecewise cubic Bézier curve approximations"
+//   "Drawing ellipses and elliptical arcs with piecewise cubic Bezier curve approximations"
 //   By Jerry R. Van Aken
 //
 // (cx, cy) is the center point of the ellipse, and P and Q are the end points
@@ -272,7 +272,7 @@ void td_path::arc(float cx, float cy, float px, float py, float qx, float qy, fl
     if (angle_sweep == 0)
         return;  // zero-length arc
 
-    // Generate new conjugate diameter end points P’ and Q’
+    // Generate new conjugate diameter end points P' and Q'
     // by rotating points P and Q by starting angle astart
     if (start_angle != 0)
     {
@@ -301,9 +301,9 @@ void td_path::arc(float cx, float cy, float px, float py, float qx, float qy, fl
     if (angle_sweep > 2 * TD_PI)
         angle_sweep = 2 * TD_PI;
 
-    // If the arc’s sweep angle is too big to be accurately
+    // If the arc's sweep angle is too big to be accurately
     // drawn as a single Bezier curve segment, partition it
-    // into smaller angles of uniform size ’phi’
+    // into smaller angles of uniform size 'phi'
     int nsegs = 1;
     float phi = angle_sweep;
     if (angle_sweep > maxphi)
@@ -312,13 +312,13 @@ void td_path::arc(float cx, float cy, float px, float py, float qx, float qy, fl
         phi = angle_sweep / nsegs;
     }
 
-    // Use tuning parameter ’tau’ to calculate initial
+    // Use tuning parameter 'tau' to calculate initial
     // Bezier control point c2
     float tau = (4.0f / 3) * td_tan(phi / 4);
     c2_x = p2_x - tau * qx;
     c2_y = p2_y - tau * qy;
 
-    // For each elliptical arc of ’phi’ radians, plot a
+    // For each elliptical arc of 'phi' radians, plot a
     // Bezier curve segment to approximate the arc
     float cosp = td_cos(phi);
     float sinp = td_sin(phi);
