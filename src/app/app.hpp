@@ -182,7 +182,7 @@ struct td_demo
         int font_type = td_font_type_REGULAR;
         const char* id = "Text on polyline";
         std::string text = "Hello World";
-        float font_size = 75.0f;
+        float font_size = 89.0f;
         td_path target;
         td_path path;
     } text_on_polyline;
