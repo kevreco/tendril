@@ -213,6 +213,17 @@ size_t td_align_up(size_t v, size_t byte_alignment)
         : v;
 }
 
+double td_pow(double base, unsigned int exponent)
+{
+    double value = 1;
+    for (; exponent; exponent >>= 1) {
+        if (exponent & 1)
+            value *= base;
+        base *= base;
+    }
+    return value;
+}
+
 // ============================================================================
 // td_path_fragmenter
 // ============================================================================

@@ -22,6 +22,11 @@
 #define TD_XSTR(x) TD_STR(x)
 #define TD_STR(x) #x
 
+#define TD_IS_WHITESPACE(ch) ((ch) == ' ' || (ch) == '\t' || (ch) == '\r' || (ch) == '\n')
+#define TD_IS_NUM(ch) ((ch) >= '0' && (ch) <= '9')
+#define TD_IS_ALPHA(ch) (((ch) >= 'a' && (ch) <= 'z') || ((ch) >= 'A' && (ch) <= 'Z'))
+#define TD_IS_ALPHANUM(ch) (TD_IS_ALPHA(ch) || TD_IS_NUM(ch))
+
 #define TD_PI 3.14159265358979323846f
 #define TD_DEGTORAD(x) ((x) * TD_PI / 180.0f)
 
@@ -109,6 +114,8 @@ static const char* td_utf8_codepoint(const char* str, td_codepoint* out_codepoin
 static size_t td_is_power_of_two(size_t v);
 
 static size_t td_align_up(size_t v, size_t byte_alignment);
+
+static double td_pow(double base, unsigned int exponent);
 
 template <class T>
 struct td_less {
@@ -228,6 +235,16 @@ struct td_transform_inserter {
     static void func(void* ctx, td_path_cmd cmd, const td_vec2* points);
 };
 
+
+static inline const char* td_skip_whitespace(const char* begin, const char* end)
+{
+    const char* cursor = begin;
+    while (cursor < end && TD_IS_WHITESPACE(cursor[0]))
+    {
+        cursor += 1;
+    }
+    return cursor;
+}
 
 //=============================================================================
 // font.cpp

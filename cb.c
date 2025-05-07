@@ -8,12 +8,8 @@
      
 /* Forward declarations */
 
-void assert_path(const char* path);
-void assert_process(const char* cmd);
-void assert_run(const char* exe);
-void build_generated_exe_and_run(const char* file);
-const char* build_with(const char* config);
-void my_project(const char* project_name, const char* toolchain, const char* config);
+static const char* build_with(const char* config);
+static void my_project(const char* project_name, const char* toolchain, const char* config);
 
 int main()
 {
@@ -32,67 +28,7 @@ int main()
     return 0;
 }
 
-/* Shortcut to create a project with default config flags. */
-void my_project(const char* project_name, const char* toolchain, const char* config)
-{
-    cb_project(project_name);
-
-    cb_set_f(cb_OUTPUT_DIR, ".build/%s_%s/%s/", toolchain, config, project_name);
-
-#ifdef SOURCE_REVISION
-    cb_add_f(cb_DEFINES, "SOURCE_REVISION=%d", XSTR(SOURCE_REVISION));
-#endif
-
-    cb_bool is_debug = cb_str_equals(config, "Debug");
-
-    if (is_debug && (cb_str_equals(toolchain, "gcc")))
-    {
-        cb_add(cb_CXFLAGS, "-fsanitize=address"); /* Address sanitizer, same flag for gcc and msvc. */
-    }
-
-    if (cb_str_equals(toolchain, "msvc"))
-    {
-        cb_add(cb_CXFLAGS, "/Zi");   /* Produce debugging information (.pdb) */
-        cb_add(cb_CXFLAGS, "/EHsc"); /* Allow exception catching. */
-        
-        /* Use alternate location for the .pdb.
-           In this case it will be next to the .exe */
-        cb_add(cb_LFLAGS, "/pdbaltpath:%_PDB%"); 
-
-        cb_add(cb_DEFINES, "UNICODE");
-        cb_add(cb_DEFINES, "_UNICODE");
-            
-        if (is_debug)
-        {
-            cb_add(cb_LFLAGS, "/MANIFEST:EMBED");
-            cb_add(cb_LFLAGS, "/INCREMENTAL:NO"); /* No incremental linking */
-
-            cb_add(cb_CXFLAGS, "-Od");   /* Disable optimization */
-            cb_add(cb_DEFINES, "DEBUG"); /* Add DEBUG constant define */
-
-        }
-        else
-        {
-            cb_add(cb_CXFLAGS, "-O1");   /* Optimization level 1 */
-        }
-    }
-    else if (cb_str_equals(toolchain, "gcc"))
-    {
-        if (is_debug)
-        {
-            cb_add(cb_CXFLAGS, "-g");    /* Produce debugging information  */
-            cb_add(cb_CXFLAGS, "-p");    /* Profile compilation (in case of performance analysis)  */
-            cb_add(cb_CXFLAGS, "-O0");   /* Disable optimization */
-            cb_add(cb_DEFINES, "DEBUG"); /* Add DEBUG constant define */
-        }
-        else
-        {
-            cb_add(cb_CXFLAGS, "-O1");   /* Optimization level 1 */
-        }
-    }
-}
-
-const char* build_with(const char* config)
+static const char* build_with(const char* config)
 {
     cb_toolchain_set(cb_toolchain_default_cpp());
 
@@ -159,4 +95,64 @@ const char* build_with(const char* config)
 #endif
 
     return ac_exe;
+}
+
+/* Shortcut to create a project with default config flags. */
+static void my_project(const char* project_name, const char* toolchain, const char* config)
+{
+    cb_project(project_name);
+
+    cb_set_f(cb_OUTPUT_DIR, ".build/%s_%s/%s/", toolchain, config, project_name);
+
+#ifdef SOURCE_REVISION
+    cb_add_f(cb_DEFINES, "SOURCE_REVISION=%d", XSTR(SOURCE_REVISION));
+#endif
+
+    cb_bool is_debug = cb_str_equals(config, "Debug");
+
+    if (is_debug && (cb_str_equals(toolchain, "gcc")))
+    {
+        cb_add(cb_CXFLAGS, "-fsanitize=address"); /* Address sanitizer, same flag for gcc and msvc. */
+    }
+
+    if (cb_str_equals(toolchain, "msvc"))
+    {
+        cb_add(cb_CXFLAGS, "/Zi");   /* Produce debugging information (.pdb) */
+        cb_add(cb_CXFLAGS, "/EHsc"); /* Allow exception catching. */
+        
+        /* Use alternate location for the .pdb.
+           In this case it will be next to the .exe */
+        cb_add(cb_LFLAGS, "/pdbaltpath:%_PDB%"); 
+
+        cb_add(cb_DEFINES, "UNICODE");
+        cb_add(cb_DEFINES, "_UNICODE");
+            
+        if (is_debug)
+        {
+            cb_add(cb_LFLAGS, "/MANIFEST:EMBED");
+            cb_add(cb_LFLAGS, "/INCREMENTAL:NO"); /* No incremental linking */
+
+            cb_add(cb_CXFLAGS, "-Od");   /* Disable optimization */
+            cb_add(cb_DEFINES, "DEBUG"); /* Add DEBUG constant define */
+
+        }
+        else
+        {
+            cb_add(cb_CXFLAGS, "-O1");   /* Optimization level 1 */
+        }
+    }
+    else if (cb_str_equals(toolchain, "gcc"))
+    {
+        if (is_debug)
+        {
+            cb_add(cb_CXFLAGS, "-g");    /* Produce debugging information  */
+            cb_add(cb_CXFLAGS, "-p");    /* Profile compilation (in case of performance analysis)  */
+            cb_add(cb_CXFLAGS, "-O0");   /* Disable optimization */
+            cb_add(cb_DEFINES, "DEBUG"); /* Add DEBUG constant define */
+        }
+        else
+        {
+            cb_add(cb_CXFLAGS, "-O1");   /* Optimization level 1 */
+        }
+    }
 }
