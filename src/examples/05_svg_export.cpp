@@ -9,5 +9,5 @@ int main(void)
     path.add_rect(64, 64, 192, 192);
 
     // Save path to .svg.
-    td::path_to_svg_file(path, "image.svg", 256, 256, "black", td_svg_options_FILL);
+    td::path_to_svg_file(path, "image.svg", 256, 256, "darkgreen", td_svg_options_FILL);
 }
