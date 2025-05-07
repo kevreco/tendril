@@ -762,17 +762,17 @@ namespace td {
 
     // Create piecewise version of the path
     // https://en.wikipedia.org/wiki/Piecewise_linear_function
-    void path_to_piecewise_path(const td_path& path, td_piecewise_path* piecewise, td_operation_flags flags = td_operation_flags_ALL);
+    void path_to_piecewise_path(const td_path& path, td_piecewise_path* piecewise, int flags = td_operation_flags_ALL);
 
     // Copy path segments lines and curves to small lines of "fragment_length" size. 
     // Must not be confused with to_piecewise_path.
     void path_to_fragmented_path(const td_path& path, td_path* fragmented, float fragment_length = 5.0f);
 
     // Create SVG file with a single path.
-    void path_to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color = "black", td_svg_options option = td_svg_options_FILL);
+    void path_to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color = "black", int option = td_svg_options_DEFAULT);
 
     // Create SVG file with a single path.
-    void path_to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color = "black", td_svg_options option = td_svg_options_FILL);
+    void path_to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color = "black", int option = td_svg_options_DEFAULT);
 
     td_vec2 transform_along_piecewise(const td_piecewise_path& pw, const td_vec2& p, bool smooth);
     void transform_along_piecewise(const td_piecewise_path& pw, td_point_array* points, bool smooth);

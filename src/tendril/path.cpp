@@ -634,7 +634,7 @@ void td::path_to_flatten_path(const td_path& path, td_path* flatten)
     traverse_flatten_path(path, td_path_inserter::func, flatten);
 }
 
-void td::path_to_piecewise_path(const td_path& path, td_piecewise_path* piecewise, td_operation_flags flags)
+void td::path_to_piecewise_path(const td_path& path, td_piecewise_path* piecewise, int operation_flags)
 {
     piecewise->reserve(piecewise->points.size() + path.points.size());
 
@@ -659,7 +659,7 @@ void td::path_to_fragmented_path(const td_path& path, struct td_path* fragmented
     traverse_flatten_path(path, td_path_fragmenter::func, &fragmenter);
 }
 
-void td::path_to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color, td_svg_options option)
+void td::path_to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color, int svg_option)
 {
     FILE* f = 0;
     const char* mode = "wb";
@@ -671,7 +671,7 @@ void td::path_to_svg_file(const td_path& path, const char* filename, size_t widt
     f = fopen(filename, mode);
 #endif
 
-    path_to_svg_file(path, f, width, height, color, option);
+    path_to_svg_file(path, f, width, height, color, svg_option);
 
     fclose(f);
 }
@@ -682,9 +682,9 @@ void td::path_to_svg_file(const td_path& path, const char* filename, size_t widt
 //      <path d="M150 5 L75 200 L225 200 Z"
 //      style="fill:none;stroke:black;stroke-width:1" />
 //    </svg>
-void td::path_to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color, td_svg_options option)
+void td::path_to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color, int svg_options)
 {
-    const char* path_type = option == td_svg_options_STROKE ? "stroke" : "fill";
+    const char* path_type = svg_options & td_svg_options_FILL ? "fill" : "stroke";
 
     fprintf(file, "<svg width=\"%zu\" height=\"%zu\" xmlns=\"http://www.w3.org/2000/svg\">", width, height);
     fprintf(file, "\n  <path d=\"");
