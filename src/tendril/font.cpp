@@ -102,9 +102,9 @@ void td_font::destroy(td_font* f)
 // td_font_store
 // ============================================================================
 
-void td_font_store::init_from_file(td_font_store* fs, const char* filename, int ttc_index)
+bool td_font_store::init_from_file(td_font_store* fs, const char* filename, int ttc_index)
 {
-    td_font::init_from_file(&fs->font, filename, ttc_index);
+    return td_font::init_from_file(&fs->font, filename, ttc_index);
 }
 
 void td_font_store::destroy(td_font_store* fs)

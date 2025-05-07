@@ -845,7 +845,7 @@ struct td_font_store
     // Arena allocator to contain glyphs data.
     td_arena glyph_arena{ GlyphCountPerPage };
 
-    static void init_from_file(td_font_store* fs, const char* filename, int ttc_index);
+    static bool init_from_file(td_font_store* fs, const char* filename, int ttc_index);
 
     static void destroy(td_font_store* fs);
 
