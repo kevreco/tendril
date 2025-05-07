@@ -628,13 +628,13 @@ void td::traverse_flatten_path(const td_path& path, td_traverse_func_t func, voi
     }
 }
 
-void td::to_flatten_path(const td_path& path, td_path* flatten)
+void td::path_to_flatten_path(const td_path& path, td_path* flatten)
 {
     flatten->reserve(flatten->points.size() + path.points.size());
     traverse_flatten_path(path, td_path_inserter::func, flatten);
 }
 
-void td::to_piecewise_path(const td_path& path, td_piecewise_path* piecewise, td_operation_flags flags)
+void td::path_to_piecewise_path(const td_path& path, td_piecewise_path* piecewise, td_operation_flags flags)
 {
     piecewise->reserve(piecewise->points.size() + path.points.size());
 
@@ -648,7 +648,7 @@ void td::to_piecewise_path(const td_path& path, td_piecewise_path* piecewise, td
     traverse_flatten_path(path, td_path_to_piecewise::func, &ptp);
 }
 
-void td::to_fragmented_path(const td_path& path, struct td_path* fragmented, float fragment_length)
+void td::path_to_fragmented_path(const td_path& path, struct td_path* fragmented, float fragment_length)
 {
     fragmented->reserve(path.points.size());
 
@@ -659,7 +659,7 @@ void td::to_fragmented_path(const td_path& path, struct td_path* fragmented, flo
     traverse_flatten_path(path, td_path_fragmenter::func, &fragmenter);
 }
 
-void td::to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color, td_svg_options option)
+void td::path_to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color, td_svg_options option)
 {
     FILE* f = 0;
     const char* mode = "wb";
@@ -671,7 +671,7 @@ void td::to_svg_file(const td_path& path, const char* filename, size_t width, si
     f = fopen(filename, mode);
 #endif
 
-    to_svg_file(path, f, width, height, color, option);
+    path_to_svg_file(path, f, width, height, color, option);
 
     fclose(f);
 }
@@ -682,7 +682,7 @@ void td::to_svg_file(const td_path& path, const char* filename, size_t width, si
 //      <path d="M150 5 L75 200 L225 200 Z"
 //      style="fill:none;stroke:black;stroke-width:1" />
 //    </svg>
-void td::to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color, td_svg_options option)
+void td::path_to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color, td_svg_options option)
 {
     const char* path_type = option == td_svg_options_STROKE ? "stroke" : "fill";
 
@@ -723,28 +723,24 @@ void td::to_svg_file(const td_path& path, FILE* file, size_t width, size_t heigh
     fprintf(file, "\n</svg>");
 }
 
-td_vec2 td::transform_along_piecewise(const td_piecewise_path& pw, td_vec2 p)
+td_vec2 td::transform_along_piecewise(const td_piecewise_path& pw, const td_vec2& p, bool interpolate_tangent)
 {
     float t = p.x;
     float height = p.y;
     td_vec2 point = pw.point_at_time(t);
-    td_vec2 norm = pw.unit_normal_at_time(t);
+    td_vec2 norm = interpolate_tangent ? pw.smoothed_unit_normal_at_time(t) :  pw.unit_normal_at_time(t);
 
     norm.x *= height;
     norm.y *= height;
     return point + norm;
 }
 
-td_vec2 td::smooth_transform_along_piecewise(const td_piecewise_path& pw, td_vec2 p)
+void td::transform_along_piecewise(const td_piecewise_path& pw, td_point_array* points, bool interpolate_tangent)
 {
-    float t = p.x;
-    float height = p.y;
-    td_vec2 point = pw.point_at_time(t);
-    td_vec2 norm = pw.smoothed_unit_normal_at_time(t);
-
-    norm.x *= height;
-    norm.y *= height;
-    return point + norm;
+    for (size_t i = 0; i < points->size(); i += 1)
+    {
+        points->at(i) = transform_along_piecewise(pw, points->at(i), interpolate_tangent);
+    }
 }
 
 void td::elements_sum(td_path* path, td_vec2 p)

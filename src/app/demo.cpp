@@ -59,7 +59,7 @@ struct path_bender
 	void add(const td_path& target_path, const td_path& directive_path, int flags = 0)
 	{
 		// Convert to piecwise path to transform the target path more precisely.
-		td::to_piecewise_path(directive_path, &pw_directive_path);
+		td::path_to_piecewise_path(directive_path, &pw_directive_path);
 
 		const td_path* target = &target_path;
 
@@ -74,20 +74,11 @@ struct path_bender
 			target = &stretched_target;
 		}
 
-		td::to_fragmented_path(*target, &result_path, 2.0f);
+		td::path_to_fragmented_path(*target, &result_path, 2.0f);
 
 		// Transform
-		for (int i = 0; i < result_path.points.size(); i += 1)
-		{
-			if (flags & path_bender_flags_INTERPOLATE_TANGENT)
-			{
-				result_path.points[i] = td::smooth_transform_along_piecewise(pw_directive_path, result_path.points[i]);
-			}
-			else
-			{
-				result_path.points[i] = td::transform_along_piecewise(pw_directive_path, result_path.points[i]);
-			}
-		}
+		bool interpolate_tangent = flags & path_bender_flags_INTERPOLATE_TANGENT;
+		td::transform_along_piecewise(pw_directive_path, &result_path.points, interpolate_tangent);
 	}
 };
 
@@ -814,7 +805,7 @@ void td_demo::display_svg_widget(const td_path& path, float button_width)
 {
 	if (ImGui::Button("Save to SVG"))
 	{
-		td::to_svg_file(path, svg_file_name, TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT, "darkgreen");
+		td::path_to_svg_file(path, svg_file_name, TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT, "darkgreen");
 
 		app_backend::save_file_client_side(svg_file_name, svg_file_name);
 

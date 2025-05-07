@@ -206,7 +206,7 @@ namespace td
 				path.cubic_to(td_vec2{ 3, 3 }, td_vec2{ 5, 3 }, td_vec2{ 9, 0 });
 
 				td_path flatten_path;
-				td::to_flatten_path(path, &flatten_path);
+				td::path_to_flatten_path(path, &flatten_path);
 
 				TD_ASSERT(flatten_path.points.size() > 4);
 
@@ -228,7 +228,7 @@ namespace td
 
 				td_piecewise_path pw;
 
-				td::to_piecewise_path(p, &pw);
+				td::path_to_piecewise_path(p, &pw);
 
 				{
 					TD_ASSERT(pw.points.size() == p.points.size());
@@ -289,7 +289,7 @@ namespace td
 
 				td_path fragmented_path;
 
-				td::to_fragmented_path(path, &fragmented_path, 1.0f);
+				td::path_to_fragmented_path(path, &fragmented_path, 1.0f);
 
 				TD_ASSERT(fragmented_path.points.size() == 3);
 				
@@ -313,7 +313,7 @@ namespace td
 
 				td_path fragmented_path;
 
-				to_fragmented_path(p, &fragmented_path, 1.0f);
+				td::path_to_fragmented_path(p, &fragmented_path, 1.0f);
 
 				TD_ASSERT(fragmented_path.points.size() == 2);
 
@@ -336,7 +336,7 @@ namespace td
 
 				td_path fragmented_path;
 
-				td::to_fragmented_path(p , &fragmented_path, 1.0f);
+				td::path_to_fragmented_path(p , &fragmented_path, 1.0f);
 
 				TD_ASSERT(fragmented_path.points.size() == 4);
 
@@ -361,7 +361,7 @@ namespace td
 
 				td_path fragmented_path;
 
-				to_fragmented_path(p, &fragmented_path, 1.0f);
+				td::path_to_fragmented_path(p, &fragmented_path, 1.0f);
 
 				TD_ASSERT(fragmented_path.points.size() == 4);
 
@@ -384,9 +384,8 @@ namespace td
 
 				td_path fragmented_path;
 
-				td::to_fragmented_path(path, &fragmented_path, 10.0f);
+				td::path_to_fragmented_path(path, &fragmented_path, 10.0f);
 
-				
 				// Divide each side of the rect by two
 				TD_ASSERT(fragmented_path.points.size() == 23);
 

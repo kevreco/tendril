@@ -758,24 +758,24 @@ namespace td {
     void traverse_flatten_path(const td_path& path, td_traverse_func_t func, void* ctx);
 
     // Copy path and turn curves into segments.
-    void to_flatten_path(const td_path& path, struct td_path* flatten);
+    void path_to_flatten_path(const td_path& path, struct td_path* flatten);
 
     // Create piecewise version of the path
     // https://en.wikipedia.org/wiki/Piecewise_linear_function
-    void to_piecewise_path(const td_path& path, td_piecewise_path* piecewise, td_operation_flags flags = td_operation_flags_ALL);
+    void path_to_piecewise_path(const td_path& path, td_piecewise_path* piecewise, td_operation_flags flags = td_operation_flags_ALL);
 
     // Copy path segments lines and curves to small lines of "fragment_length" size. 
     // Must not be confused with to_piecewise_path.
-    void to_fragmented_path(const td_path& path, td_path* fragmented, float fragment_length = 5.0f);
+    void path_to_fragmented_path(const td_path& path, td_path* fragmented, float fragment_length = 5.0f);
 
     // Create SVG file with a single path.
-    void to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color = "black", td_svg_options option = td_svg_options_FILL);
+    void path_to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color = "black", td_svg_options option = td_svg_options_FILL);
 
     // Create SVG file with a single path.
-    void to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color = "black", td_svg_options option = td_svg_options_FILL);
+    void path_to_svg_file(const td_path& path, FILE* file, size_t width, size_t height, const char* color = "black", td_svg_options option = td_svg_options_FILL);
 
-    td_vec2 transform_along_piecewise(const td_piecewise_path& pw, td_vec2 p);
-    td_vec2 smooth_transform_along_piecewise(const td_piecewise_path& pw, td_vec2 p);
+    td_vec2 transform_along_piecewise(const td_piecewise_path& pw, const td_vec2& p, bool smooth);
+    void transform_along_piecewise(const td_piecewise_path& pw, td_point_array* points, bool smooth);
 
     // Add 'p' to all points.
     void elements_sum(td_path* path, td_vec2 p);

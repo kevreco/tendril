@@ -216,7 +216,7 @@ void td_rasterizer::command_add_stroke(const td_path& path, const td_stroke_opti
     }
     
     td_path flatten_path;
-    td::to_flatten_path(path, &flatten_path);
+    td::path_to_flatten_path(path, &flatten_path);
 
     td_contour_builder builder(this, flatten_path, opt);
 
