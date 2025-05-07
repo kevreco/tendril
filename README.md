@@ -6,7 +6,7 @@ It only contains the necessary features to draw Tendrilises.
 
 While full-fledged vector graphics libraries exist, this one should be easy to study or hack on.
 
-## Demo
+## Online Demo
 
 An online demo is available [here](https://kevreco.github.io/tendril/).
 
@@ -14,6 +14,12 @@ An online demo is available [here](https://kevreco.github.io/tendril/).
 
 ![tendrilis](docs/tendrilis.png)
 ![draw_tendrilis](docs/draw_tendrilis.png)
+
+## Examples
+
+Few code examples are available in the [corresponding folder](src/examples/).
+
+The resulting images can be seen [here](docs/examples.md).
 
 ## Features
 
