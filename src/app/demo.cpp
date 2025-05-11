@@ -367,7 +367,8 @@ void td_demo::display_options()
 
 	ImGui::Checkbox("Show Debug Demos", &cfg.show_debug_demos);
 	ImGui::Checkbox("Show Options On Left Panel", &cfg.show_options_on_left_panel);
-	
+	ImGui::Checkbox("Fullscren", &cfg.fullscreen);
+
 	if (ImGui::Button("Reset demo"))
 	{
 		ImGui::OpenPopup("##PopUpReset");
@@ -459,8 +460,11 @@ void td_demo::display_demo()
 
 	bool window_opened = ImGui::Begin("Tendril Demo", NULL, flags);
 
-	// Restore border
-	ImGui::PopStyleVar();
+	if (cfg.fullscreen)
+	{
+		// Restore border
+		ImGui::PopStyleVar();
+	}
 
 	if (window_opened)
 	{
