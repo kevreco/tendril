@@ -175,7 +175,7 @@ struct td_demo
         const char* id = "Text on line";
         std::string text = "Hello World";
         float font_size = 40.0f;
-        td_path target;
+        td_path shape;
         td_path guiding_path;
     } text_on_line;
 
@@ -184,7 +184,7 @@ struct td_demo
         const char* id = "Text on polyline";
         std::string text = "Hello World";
         float font_size = 89.0f;
-        td_path target;
+        td_path shape;
         td_path guiding_path;
     } text_on_polyline;
 
@@ -193,15 +193,14 @@ struct td_demo
         const char* id = "Text on curve";
         std::string text = "Hello World";
         float font_size = 45.0f;
-        td_path target;
+        td_path shape;
         td_path guiding_path;
     } text_on_curve;
 
     struct {
        
         const char* id = "Triangle on curve";
-        float font_size = 30.0f;
-        td_path target;
+        td_path shape;
         td_path guiding_path;
     } triangle_on_curve;
 
@@ -210,7 +209,7 @@ struct td_demo
         const char* id = "Tendrilis on curve";
         std::string text = "Tendrilis on curve";
         float font_size = 30.0f;
-        td_path target;
+        td_path shape;
         td_path guiding_path;
     } tendrilis_on_curve;
 
@@ -219,7 +218,7 @@ struct td_demo
         const char* id = "Draw Tendrilis (Spiro)";
         std::string text = "Draw tendrilis";
         float font_size = 30.0f;
-        td_path target;
+        td_path shape;
         td_path guiding_path;
         td_point_array points;
 
@@ -233,29 +232,25 @@ struct td_demo
 
     struct {
         const char* id = "Rect on line";
-        float font_size = 30.0f;
-        td_path target;
+        td_path shape;
         td_path guiding_path;
     } rect_on_line;
 
     struct {
         const char* id = "Curve on line";
-        float font_size = 30.0f;
-        td_path target;
+        td_path shape;
         td_path guiding_path;
     } curve_on_line;
 
     struct {
         const char* id = "Vertical bars on curve";
-        float font_size = 30.0f;
-        td_path target;
+        td_path shape;
         td_path guiding_path;
     } vbars_on_curve;
 
     struct {
         const char* id = "Horizontal bars on curve";
-        float font_size = 30.0f;
-        td_path target;
+        td_path shape;
         td_path guiding_path;
     } hbars_on_curve;
 

@@ -208,7 +208,7 @@ td_demo::td_demo()
 		triangle.line_to(td_vec2{ 0.0f, -2.5f });
 		triangle.close();
 
-		triangle_on_curve.target = triangle;
+		triangle_on_curve.shape = triangle;
 
 		triangle_on_curve.guiding_path = directive_curve;
 	}
@@ -236,7 +236,7 @@ td_demo::td_demo()
 		td::elements_multiply(&rect, td_vec2(1.0f, -1.0f));
 		td::elements_multiply(&rect, td_vec2(100.f, 100.0f));
 
-		rect_on_line.target = rect;
+		rect_on_line.shape = rect;
 		rect_on_line.guiding_path = directive_line;
 	}
 
@@ -259,7 +259,7 @@ td_demo::td_demo()
 
 		curve_on_line.guiding_path = line;
 
-		curve_on_line.target = curve;
+		curve_on_line.shape = curve;
 
 	}
 
@@ -284,7 +284,7 @@ td_demo::td_demo()
 		td::elements_multiply(&bars, td_vec2(100.f, 100.0f));
 
 		directive_curve.clone_to(&vbars_on_curve.guiding_path);
-		vbars_on_curve.target = bars;
+		vbars_on_curve.shape = bars;
 	}
 
 	// Horizontal bars on curve
@@ -303,7 +303,7 @@ td_demo::td_demo()
 		td::elements_multiply(&bars, td_vec2(100.f, 100.0f));
 
 		hbars_on_curve.guiding_path = directive_curve;
-		hbars_on_curve.target = bars;
+		hbars_on_curve.shape = bars;
 	}
 }
 
@@ -529,14 +529,14 @@ void td_demo::display_demo()
 		{
 			td_font_store* font = get_font(text_on_line.font_type);
 
-			text_on_line.target.clear();
+			text_on_line.shape.clear();
 
 			// Convert text to path
-			td::insert_text_to_path(font, text_on_line.text.data(), td_vec2(), text_on_line.font_size, &text_on_line.target);
+			td::insert_text_to_path(font, text_on_line.text.data(), td_vec2(), text_on_line.font_size, &text_on_line.shape);
 
 			td_path* path = apply_various_effect(&text_on_line.guiding_path);
 
-			bender.set(text_on_line.target, *path);
+			bender.set(text_on_line.shape, *path);
 
 			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_line.guiding_path.points);
 
@@ -549,14 +549,14 @@ void td_demo::display_demo()
 		{
 			td_font_store* font = get_font(text_on_polyline.font_type);
 
-			text_on_polyline.target.clear();
+			text_on_polyline.shape.clear();
 
 			// Convert text to path
-			td::insert_text_to_path(font, text_on_polyline.text.data(), td_vec2(), text_on_polyline.font_size, &text_on_polyline.target);
+			td::insert_text_to_path(font, text_on_polyline.text.data(), td_vec2(), text_on_polyline.font_size, &text_on_polyline.shape);
 
 			td_path* path = apply_various_effect(&text_on_polyline.guiding_path);
 
-			bender.set(text_on_polyline.target, *path);
+			bender.set(text_on_polyline.shape, *path);
 
 			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_polyline.guiding_path.points);
 
@@ -569,14 +569,14 @@ void td_demo::display_demo()
 		{
 			td_font_store* font = get_font(text_on_curve.font_type);
 
-			text_on_curve.target.clear();
+			text_on_curve.shape.clear();
 
 			// Convert text to path
-			td::insert_text_to_path(font, text_on_curve.text.data(), td_vec2(), text_on_curve.font_size, &text_on_curve.target);
+			td::insert_text_to_path(font, text_on_curve.text.data(), td_vec2(), text_on_curve.font_size, &text_on_curve.shape);
 
 			td_path* path = apply_various_effect(&text_on_curve.guiding_path);
 
-			bender.set(text_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
+			bender.set(text_on_curve.shape, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
 			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_curve.guiding_path.points);
 
@@ -591,7 +591,7 @@ void td_demo::display_demo()
 			td_path* path = apply_various_effect(&triangle_on_curve.guiding_path);
 
 			int flags = path_bender_flags_INTERPOLATE_TANGENT | path_bender_flags_STRETCH_TARGET;
-			bender.set(triangle_on_curve.target, *path, flags);
+			bender.set(triangle_on_curve.shape, *path, flags);
 
 			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &triangle_on_curve.guiding_path.points);
 
@@ -608,14 +608,14 @@ void td_demo::display_demo()
 				? normalized_tendrilis_text(&tendrilis_on_curve.text)
 				: tendrilis_on_curve.text;
 
-			tendrilis_on_curve.target.clear();
+			tendrilis_on_curve.shape.clear();
 
 			// Convert text to path
-			td::insert_text_to_path(font, text.data(), td_vec2(), tendrilis_on_curve.font_size, &tendrilis_on_curve.target);
+			td::insert_text_to_path(font, text.data(), td_vec2(), tendrilis_on_curve.font_size, &tendrilis_on_curve.shape);
 
 			td_path* path = apply_various_effect(&tendrilis_on_curve.guiding_path);
 
-			bender.set(tendrilis_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
+			bender.set(tendrilis_on_curve.shape, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
 			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &tendrilis_on_curve.guiding_path.points);
 
@@ -636,10 +636,10 @@ void td_demo::display_demo()
 				? normalized_tendrilis_text(&spiro.text)
 				: spiro.text;
 
-			spiro.target.clear();
+			spiro.shape.clear();
 		
 			// Convert text to path
-			td::insert_text_to_path(font, text.data(), td_vec2(), spiro.font_size, &spiro.target);
+			td::insert_text_to_path(font, text.data(), td_vec2(), spiro.font_size, &spiro.shape);
 
 			td_point_array points = spiro.points;
 
@@ -655,7 +655,7 @@ void td_demo::display_demo()
 
 			td_path* path = apply_various_effect(&spiro.guiding_path);
 
-			bender.set(spiro.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
+			bender.set(spiro.shape, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
 			spiro.canvas_info = setup_canvas_layout_with_bender(&bender, &spiro.points);
 
@@ -686,7 +686,7 @@ void td_demo::display_demo()
 			td_path* path = apply_various_effect(&rect_on_line.guiding_path);
 
 			bool smooth = true;
-			bender.set(rect_on_line.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
+			bender.set(rect_on_line.shape, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
 			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &rect_on_line.guiding_path.points);
 
@@ -700,7 +700,7 @@ void td_demo::display_demo()
 			td_path* path = apply_various_effect(&curve_on_line.guiding_path);
 
 			bool smooth = true;
-			bender.set(curve_on_line.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
+			bender.set(curve_on_line.shape, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
 			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &curve_on_line.guiding_path.points);
 
@@ -714,7 +714,7 @@ void td_demo::display_demo()
 			td_path* path = apply_various_effect(&vbars_on_curve.guiding_path);
 
 			bool smooth = true;
-			bender.set(vbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
+			bender.set(vbars_on_curve.shape, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
 			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &vbars_on_curve.guiding_path.points);
 
@@ -729,7 +729,7 @@ void td_demo::display_demo()
 			td_path* path = apply_various_effect(&hbars_on_curve.guiding_path);
 
 			bool smooth = true;
-			bender.set(hbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
+			bender.set(hbars_on_curve.shape, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
 			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &hbars_on_curve.guiding_path.points);
 
