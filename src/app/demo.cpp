@@ -10,8 +10,9 @@
 
 static td_rgba8 background_color{ 220, 210, 205, 255 };
 
-static td_rgba8 green_tendrilis{ 10, 85, 5, 255 };
-static td_rgba8 line_color{ 180, 90, 180, 255 };
+static td_rgba8 shape_color{ 10, 85, 5, 255 };
+// color for guiding path and control point.
+static td_rgba8 extra_drawing_color{ 180, 90, 180, 255 };
 static td_rgba8 point_hover_color{ 180, 90, 180, 255 };
 static td_rgba8 background_grid_color{ 175, 175, 175, 255 };
 static td_rgba8 bitmap_buffer[TD_CANVAS_WIDTH * TD_CANVAS_HEIGHT];
@@ -132,9 +133,6 @@ struct td_spiro_ctx {
 	}
 };
 
-// Display extra drawing (directive path, normals, points)
-static void display_bender_overlay(td_demo* demo, const td_point_array* directive_path_points, const td_piecewise_path* directive_pw_path, const td_vec2& point_hovered);
-
 static wobbler wobble;
 static periodic period;
 
@@ -205,9 +203,9 @@ td_demo::td_demo()
 	// Triangle on curve
 	{
 		td_path triangle;
-		triangle.move_to(td_vec2{ 0.0f, 0.5f });
+		triangle.move_to(td_vec2{ 0.0f, 2.5f });
 		triangle.line_to(td_vec2{ 1.0f, 0.0f });
-		triangle.line_to(td_vec2{ 0.0f, -0.5f });
+		triangle.line_to(td_vec2{ 0.0f, -2.5f });
 		triangle.close();
 
 		triangle_on_curve.target = triangle;
@@ -224,15 +222,6 @@ td_demo::td_demo()
 		td::elements_multiply(&curve, canvas_size);
 
 		tendrilis_on_curve.path = curve;
-	}
-
-	// Draw tendrilis (Spiro)
-	{
-		if (draw_tendrilis_spiro.edit_state == td_curve_edit_state_EDIT)
-		{
-			// Add first point that will be displayed under the mouse cursor.
-			draw_tendrilis_spiro.points.push_back({});
-		}
 	}
 
 	//
@@ -333,6 +322,10 @@ void td_demo::display()
 	display_demo();
 
 	handle_interactions();
+
+	// Upload texture to GPU.
+	bool loaded_or_updated = app_backend::load_or_update_texture(bitmap.data, bitmap.width, bitmap.height, &texture);
+	TD_ASSERT(loaded_or_updated);
 }
 
 void td_demo::display_options()
@@ -342,9 +335,9 @@ void td_demo::display_options()
 	if (ImGui::TreeNode("Colors"))
 	{
 		ImGui::SetNextItemWidth(item_width);
-		ImGuiEx::U32ColorEdit3("Filling Color##Drawing", green_tendrilis.to_u32_ptr());
+		ImGuiEx::U32ColorEdit3("Filling Color##Drawing", shape_color.to_u32_ptr());
 		ImGui::SetNextItemWidth(item_width);
-		ImGuiEx::U32ColorEdit3("Line Color##Directive", line_color.to_u32_ptr());
+		ImGuiEx::U32ColorEdit3("Guiding Path Color##Directive", extra_drawing_color.to_u32_ptr());
 		ImGui::SetNextItemWidth(item_width);
 		ImGuiEx::U32ColorEdit3("Point Hover Color##Directive", point_hover_color.to_u32_ptr());
 		ImGui::SetNextItemWidth(item_width);
@@ -357,8 +350,8 @@ void td_demo::display_options()
 
 	ImGui::SeparatorText("Path"); // ===
 
-	ImGui::Checkbox("Show Path", &cfg.show_path);
-	ImGui::Checkbox("Edit Path Points", &cfg.edit_path_points);
+	ImGui::Checkbox("Show Guiding Path", &cfg.show_guiding_path);
+	ImGui::Checkbox("Show Control Points", &cfg.show_control_points);
 	ImGui::SetNextItemWidth(item_width);
 	ImGui::InputFloat("Path Offset", &cfg.path_offset, 1.0f);
 
@@ -394,30 +387,14 @@ void td_demo::display_options()
 		ImGui::EndPopup();
 	}
 }
-
-void td_demo::display_canvas_background(const td_vec2& scrolling)
-{
-	td_vec2i canvas_min = td_vec2i(0, 0);
-	td_vec2i canvas_size = td_vec2i(TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT);
-	td_vec2i canvas_max{ canvas_min.x + canvas_size.x, canvas_min.y + canvas_size.y };
-
-	if (cfg.show_background_grid)
-	{
-		const int grid_step = 50;
-		for (int x = (int)fmodf(scrolling.x, grid_step); x < canvas_size.x; x += grid_step)
-		{
-			rasterizer.render_vertical_line(x, canvas_min.y, canvas_max.y, bitmap.data, canvas_size.x, canvas_size.y, background_grid_color);
-		}
-
-		for (int y = (int)fmodf(scrolling.y, grid_step); y < canvas_size.y; y += grid_step)
-		{
-			rasterizer.render_horizontal_line(canvas_min.x, canvas_max.x, y, bitmap.data, canvas_size.x, canvas_size.y, background_grid_color);
-		}
-	}
-}
-
 void td_demo::display_demo()
 {
+	// No scrolling yet
+	td_vec2 scrolling;
+
+	// Draw background color and the lines for the grid.
+	render_background(scrolling);
+
 	// Avoid moving window by mistake: only move window from the title bar.
 	ImGui::GetCurrentContext()->IO.ConfigWindowsMoveFromTitleBarOnly = true;
 
@@ -551,13 +528,19 @@ void td_demo::display_demo()
 			td_font_store* font = get_font(text_on_line.font_type);
 
 			text_on_line.target.clear();
+
+			// Convert text to path
 			td::insert_text_to_path(font, text_on_line.text.data(), td_vec2(), text_on_line.font_size, &text_on_line.target);
 
 			td_path* path = apply_various_effect(&text_on_line.path);
 
 			bender.set(text_on_line.target, *path);
 
-			display_canvas_with_bender(&bender, &text_on_line.path.points);
+			canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_line.path.points);
+
+			render_shape(bender.result_path);
+			render_guiding_path(text_on_line.path);
+			render_control_points(text_on_line.path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_TEXT_ON_POLYLINE:
@@ -565,14 +548,19 @@ void td_demo::display_demo()
 			td_font_store* font = get_font(text_on_polyline.font_type);
 
 			text_on_polyline.target.clear();
+
+			// Convert text to path
 			td::insert_text_to_path(font, text_on_polyline.text.data(), td_vec2(), text_on_polyline.font_size, &text_on_polyline.target);
 
 			td_path* path = apply_various_effect(&text_on_polyline.path);
 
 			bender.set(text_on_polyline.target, *path);
 
-			display_canvas_with_bender(&bender, &text_on_polyline.path.points);
+			canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_polyline.path.points);
 
+			render_shape(bender.result_path);
+			render_guiding_path(text_on_polyline.path);
+			render_control_points(text_on_polyline.path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_TEXT_ON_CURVE:
@@ -580,13 +568,19 @@ void td_demo::display_demo()
 			td_font_store* font = get_font(text_on_curve.font_type);
 
 			text_on_curve.target.clear();
+
+			// Convert text to path
 			td::insert_text_to_path(font, text_on_curve.text.data(), td_vec2(), text_on_curve.font_size, &text_on_curve.target);
 
 			td_path* path = apply_various_effect(&text_on_curve.path);
 
 			bender.set(text_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas_with_bender(&bender, &text_on_curve.path.points);
+			canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_curve.path.points);
+
+			render_shape(bender.result_path);
+			render_guiding_path(text_on_curve.path);
+			render_control_points(text_on_curve.path.points, info.control_point_hovered);
 			break;
 		}
 		
@@ -597,8 +591,11 @@ void td_demo::display_demo()
 			int flags = path_bender_flags_INTERPOLATE_TANGENT | path_bender_flags_STRETCH_TARGET;
 			bender.set(triangle_on_curve.target, *path, flags);
 
-			display_canvas_with_bender(&bender, &triangle_on_curve.path.points);
+			canvas_info info = setup_canvas_layout_with_bender(&bender, &triangle_on_curve.path.points);
 
+			render_shape(bender.result_path);
+			render_guiding_path(triangle_on_curve.path);
+			render_control_points(triangle_on_curve.path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_TENDRILIS_ON_CURVE: {
@@ -610,14 +607,19 @@ void td_demo::display_demo()
 				: tendrilis_on_curve.text;
 
 			tendrilis_on_curve.target.clear();
+
+			// Convert text to path
 			td::insert_text_to_path(font, text.data(), td_vec2(), tendrilis_on_curve.font_size, &tendrilis_on_curve.target);
 
 			td_path* path = apply_various_effect(&tendrilis_on_curve.path);
 
 			bender.set(tendrilis_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas_with_bender(&bender, &tendrilis_on_curve.path.points);
+			canvas_info info = setup_canvas_layout_with_bender(&bender, &tendrilis_on_curve.path.points);
 
+			render_shape(bender.result_path);
+			render_guiding_path(tendrilis_on_curve.path);
+			render_control_points(tendrilis_on_curve.path.points, info.control_point_hovered);
 			break;
 		}
 
@@ -634,16 +636,30 @@ void td_demo::display_demo()
 
 			spiro.target.clear();
 		
+			// Convert text to path
 			td::insert_text_to_path(font, text.data(), td_vec2(), spiro.font_size, &spiro.target);
 
+			td_point_array points = spiro.points;
+
+			// Display control point under cursor in edit state.
+			if (spiro.edit_state == td_curve_edit_state_EDIT
+				&& spiro.canvas_info.is_canvas_hovered)
+			{
+				points.push_back(spiro.canvas_info.mouse_pos);
+			}
+
 			spiro.path.clear();
-			points_to_spiro(spiro.points, &spiro.path);
+			points_to_spiro(points, &spiro.path);
 
 			td_path* path = apply_various_effect(&spiro.path);
 
 			bender.set(spiro.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			spiro.mouse_state = display_canvas_with_bender(&bender, &spiro.points);
+			spiro.canvas_info = setup_canvas_layout_with_bender(&bender, &spiro.points);
+
+			render_shape(bender.result_path);
+			render_guiding_path(spiro.path);
+			render_control_points(points, spiro.canvas_info.control_point_hovered);
 			break;
 		}
 		case demo_type_RECT_ON_LINE: {
@@ -653,7 +669,11 @@ void td_demo::display_demo()
 			bool smooth = true;
 			bender.set(rect_on_line.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas_with_bender(&bender, &rect_on_line.path.points);
+			canvas_info info = setup_canvas_layout_with_bender(&bender, &rect_on_line.path.points);
+
+			render_shape(bender.result_path);
+			render_guiding_path(rect_on_line.path);
+			render_control_points(rect_on_line.path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_CURVE_ON_LINE: {
@@ -663,7 +683,11 @@ void td_demo::display_demo()
 			bool smooth = true;
 			bender.set(curve_on_line.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas_with_bender(&bender, &curve_on_line.path.points);
+			canvas_info info = setup_canvas_layout_with_bender(&bender, &curve_on_line.path.points);
+
+			render_shape(bender.result_path);
+			render_guiding_path(curve_on_line.path);
+			render_control_points(curve_on_line.path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_VBARS_ON_CURVE: {
@@ -673,7 +697,12 @@ void td_demo::display_demo()
 			bool smooth = true;
 			bender.set(vbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas_with_bender(&bender, &vbars_on_curve.path.points);
+			canvas_info info = setup_canvas_layout_with_bender(&bender, &vbars_on_curve.path.points);
+
+			render_shape(bender.result_path);
+			render_guiding_path(vbars_on_curve.path);
+			render_control_points(vbars_on_curve.path.points, info.control_point_hovered);
+
 			break;
 		}
 		case demo_type_HBARS_ON_CURVE: {
@@ -683,7 +712,11 @@ void td_demo::display_demo()
 			bool smooth = true;
 			bender.set(hbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			display_canvas_with_bender(&bender, &hbars_on_curve.path.points);
+			canvas_info info = setup_canvas_layout_with_bender(&bender, &hbars_on_curve.path.points);
+
+			render_shape(bender.result_path);
+			render_guiding_path(hbars_on_curve.path);
+			render_control_points(hbars_on_curve.path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_DRAW_ARC: {
@@ -693,9 +726,9 @@ void td_demo::display_demo()
 
 			draw_arc.path.arc_to(draw_arc.rx, draw_arc.ry, draw_arc.xrotation, draw_arc.large_arc, draw_arc.sweep_flag, draw_arc.x, draw_arc.y);
 
-			td_path* path = apply_various_effect(&draw_arc.path);
+			canvas_info info = setup_canvas_layout(draw_arc.path, NULL, NULL);
 
-			display_canvas(draw_arc.path, NULL, NULL);
+			render_shape(draw_arc.path);
 			break;
 		}
 		}
@@ -819,18 +852,17 @@ void td_demo::display_svg_widget(const td_path& path, float button_width)
 	ImGui::InputText("##SVG Export", svg_file_name, sizeof(svg_file_name));
 }
 
-td_demo::canvas_mouse_state td_demo::display_canvas(const td_path& target_path, const td_piecewise_path* pw_directive_path, td_point_array* points)
+td_demo::canvas_info td_demo::setup_canvas_layout(const td_path& target_path, const td_piecewise_path* pw_directive_path, td_point_array* points)
 {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	ImVec2 canvas_min = ImGui::GetCursorScreenPos();
 
-	td_demo::canvas_mouse_state state;
+	td_demo::canvas_info info;
 
 	ImVec2 canvas_size = ImVec2(TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT);
 
 	ImVec2 no_hovered_coord{ -9999.0f,-9999.0f };
 	ImVec2 hovered_coord = no_hovered_coord;
-	state.pos = no_hovered_coord;
 
 	ImVec2 imgui_cursor_pos = ImGui::GetCursorPos();
 	ImGui::PushID(texture);
@@ -838,15 +870,15 @@ td_demo::canvas_mouse_state td_demo::display_canvas(const td_path& target_path, 
 
 	if (ImGui::IsItemHovered())
 	{
-		state.pos = ImGui::GetMousePos() - ImGui::GetItemRectMin();
-		hovered_coord = state.pos;
+		info.mouse_pos = ImGui::GetMousePos() - ImGui::GetItemRectMin();
+		hovered_coord = info.mouse_pos;
 
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
-			state.clicked = true;
+			info.clicked = true;
 		}
 
-		state.hovered = true;
+		info.is_canvas_hovered = true;
 	}
 
 	ImGui::PopID();
@@ -856,7 +888,7 @@ td_demo::canvas_mouse_state td_demo::display_canvas(const td_path& target_path, 
 
 	int point_hovered_index = -1;
 
-	if (cfg.edit_path_points && points)
+	if (cfg.show_control_points && points)
 	{
 		ImVec2 grab_size = ImVec2(cfg.grab_point_size.x, cfg.grab_point_size.y);
 		ImVec2 half_grab_size = grab_size / 2.0f;
@@ -910,30 +942,111 @@ td_demo::canvas_mouse_state td_demo::display_canvas(const td_path& target_path, 
 	ImGui::Spacing();
 
 	display_svg_widget(target_path, cfg.parameter_label_width);
+
 	ImGui::Spacing();
-	// No scrolling yet.
-	const td_vec2 scrolling{ 0.0f, 0.0f };
 
-	// Display background color and the lines for the grid.
-	display_canvas_background(scrolling);
-
-	rasterizer.render_fill_path(target_path, bitmap.data, bitmap.width, bitmap.height, green_tendrilis);
-	td_vec2 point_hovered{ -9999.0f,-9999.0f };
 	if (point_hovered_index >= 0)
 	{
-		point_hovered = points->at(point_hovered_index);
+		info.control_point_hovered = points->at(point_hovered_index);
 	}
 
-	display_bender_overlay(this, points, pw_directive_path, point_hovered);
-
-	bool loaded_or_updated = app_backend::load_or_update_texture(bitmap.data, bitmap.width, bitmap.height, &texture);
-	TD_ASSERT(loaded_or_updated);
-	return state;
+	return info;
 }
 
-td_demo::canvas_mouse_state td_demo::display_canvas_with_bender(path_bender* bender, td_point_array* points)
+td_demo::canvas_info td_demo::setup_canvas_layout_with_bender(path_bender* bender, td_point_array* points)
 {
-	return display_canvas(bender->result_path, &bender->pw_directive_path, points);
+	return setup_canvas_layout(bender->result_path, &bender->pw_directive_path, points);
+}
+
+void td_demo::render_background(const td_vec2& scrolling)
+{
+	td_vec2i canvas_min = td_vec2i(0, 0);
+	td_vec2i canvas_size = td_vec2i(TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT);
+	td_vec2i canvas_max{ canvas_min.x + canvas_size.x, canvas_min.y + canvas_size.y };
+
+	if (cfg.show_background_grid)
+	{
+		const int grid_step = 50;
+		for (int x = (int)fmodf(scrolling.x, grid_step); x < canvas_size.x; x += grid_step)
+		{
+			rasterizer.render_vertical_line(x, canvas_min.y, canvas_max.y, bitmap.data, canvas_size.x, canvas_size.y, background_grid_color);
+		}
+
+		for (int y = (int)fmodf(scrolling.y, grid_step); y < canvas_size.y; y += grid_step)
+		{
+			rasterizer.render_horizontal_line(canvas_min.x, canvas_max.x, y, bitmap.data, canvas_size.x, canvas_size.y, background_grid_color);
+		}
+	}
+}
+
+
+void td_demo::render_shape(const td_path& path)
+{
+	rasterizer.render_fill_path(path, bitmap.data, bitmap.width, bitmap.height, shape_color);
+}
+
+void td_demo::render_guiding_path(const td_path& path)
+{
+	if (cfg.show_guiding_path)
+	{
+		if (cfg.path_offset != 0.0f)
+		{
+			tmp_for_offset.clear();
+			td::path_to_offset_path(path , &tmp_for_offset, cfg.path_offset);
+
+			rasterizer.render_stroke_path(tmp_for_offset, bitmap.data, bitmap.width, bitmap.height, extra_drawing_color);
+		}
+		else
+		{
+			rasterizer.render_stroke_path(path, bitmap.data, bitmap.width, bitmap.height, extra_drawing_color);
+		}
+	}
+}
+void td_demo::render_control_points(const td_point_array& points, const td_vec2& hovered_point)
+{
+	render_control_points(points.data(), points.size(), hovered_point);
+}
+
+void td_demo::render_control_points(const td_vec2* points, size_t count, const td_vec2& hovered_point)
+{
+	if (cfg.show_control_points)
+	{
+		render_fill_buffer.clear();
+		render_stroke_buffer.clear();
+
+		td_vec2 margin = cfg.display_point_size * 0.5f;
+
+		for (int i = 0; i < count; i += 1)
+		{
+			td_vec2 p = points[i];
+
+			// Ignore the point that is hovered, it will be displayed later.
+			if (hovered_point == p)
+			{
+				continue;
+			}
+
+			td_rect r{ p - margin , p + margin };
+			render_stroke_buffer.add_rect(r.min, r.max);
+			r.reduce(1.0f);
+			render_fill_buffer.add_rect(r.min, r.max);
+		}
+
+		// @OPT: Ideally we shouldn't need to stroke/fill to rasterize rectangles.
+		rasterizer.render_stroke_path(render_stroke_buffer, bitmap.data, bitmap.width, bitmap.height, extra_drawing_color);
+		rasterizer.render_fill_path(render_fill_buffer, bitmap.data, bitmap.width, bitmap.height, background_color);
+
+		// Draw hovered point
+		render_fill_buffer.clear();
+		td_rect r{ hovered_point - margin , hovered_point + margin };
+		render_fill_buffer.add_rect(r.min, r.max);
+		rasterizer.render_fill_path(render_fill_buffer, bitmap.data, bitmap.width, bitmap.height, extra_drawing_color);
+	}
+}
+
+void td_demo::render_lines(const td_vec2* points, size_t count, const td_rgba8& color)
+{
+
 }
 
 td_font_store* td_demo::get_font(int font_type)
@@ -955,105 +1068,14 @@ void td_demo::handle_interactions()
 			spiro.edit_state_changed = set_curve_edit_state(&spiro.edit_state, td_curve_edit_state_VIEW) || spiro.edit_state_changed;
 		}
 
-		// Add or remove point depending on curve edit state.
-		if (spiro.edit_state_changed)
+		if (spiro.edit_state == td_curve_edit_state_EDIT
+			&& spiro.canvas_info.is_canvas_hovered
+			&& spiro.canvas_info.clicked)
 		{
-			if (spiro.edit_state == td_curve_edit_state_EDIT)
-			{
-				spiro.points.push_back({});
-			}
-			else
-			{
-				spiro.points.erase(spiro.points.end() - 1);
-			}
-		}
-
-		// Update point from mouse position depending on curve edit state.
-		if (spiro.edit_state == td_curve_edit_state_EDIT)
-		{
-			if (spiro.mouse_state.hovered)
-			{
-				spiro.points[spiro.points.size() - 1] = spiro.mouse_state.pos;
-			}
-
-			if (spiro.mouse_state.hovered && spiro.mouse_state.clicked)
-			{
-				spiro.points.push_back(spiro.mouse_state.pos);
-			}
+			spiro.points.push_back(spiro.canvas_info.mouse_pos);
 		}
 	}
 	}
-}
-
-static void display_bender_overlay(td_demo* demo, const td_point_array* directive_path_points, const td_piecewise_path* directive_pw_path, const td_vec2& point_hovered)
-{
-	const td_point_array* points = directive_path_points;
-	const td_piecewise_path* pw = directive_pw_path;
-
-	td_path stroke_path;
-	td_path fill_path;
-
-	// Display path
-	if (pw && pw->points.size())
-	{
-		if (demo->cfg.show_path)
-		{
-			td_vec2 point = pw->points[0];
-			point += pw->unit_normal_at(0) * demo->cfg.path_offset;
-			stroke_path.move_to(point);
-
-			for (int i = 1; i < pw->points.size(); i += 1)
-			{
-				point = pw->points[i];
-				point += pw->unit_normal_at(i) * demo->cfg.path_offset;
-				stroke_path.line_to(point);
-			}
-		}
-
-		if (demo->cfg.show_normals)
-		{
-			for (int i = 0; i < pw->points.size(); i += 1)
-			{
-				td_vec2 p = pw->points[i];
-				td_vec2 n = pw->unit_normal_at(i) * demo->cfg.normal_scale;
-
-				td_vec2 normal_start = p - n;
-				td_vec2 normal_end = p + n;
-				stroke_path.move_to(normal_start);
-				stroke_path.line_to(normal_end);
-			}
-		}
-	}
-
-	// Draw directive path points.
-	if (demo->cfg.edit_path_points && points)
-	{
-		for (int i = 0; i < points->size(); i += 1)
-		{
-			td_vec2 p = points->at(i);
-			// Ignore the point that is hovered, it will be displayed later.
-			if (point_hovered == p)
-			{
-				continue;
-			}
-
-			td_vec2 margin = demo->cfg.display_point_size * 0.5f;
-			td_rect r{ p - margin , p + margin };
-			stroke_path.add_rect(r.min, r.max);
-			r.reduce(1.0f);
-			fill_path.add_rect(r.min, r.max);
-		}
-	}
-
-	demo->rasterizer.render_stroke_path(stroke_path, demo->bitmap.data, demo->bitmap.width, demo->bitmap.height, line_color);
-	demo->rasterizer.render_fill_path(fill_path, demo->bitmap.data, demo->bitmap.width, demo->bitmap.height, background_color);
-
-	// Draw hovered_point
-	td_path hovered_point_rect;
-
-	td_vec2 margin = demo->cfg.display_point_size * 0.5f;
-	hovered_point_rect.add_rect(point_hovered - margin, point_hovered + margin);
-	demo->rasterizer.render_fill_path(hovered_point_rect, demo->bitmap.data, demo->bitmap.width, demo->bitmap.height, point_hover_color);
 }
 
 static td_path* apply_various_effect(td_path* input_path)

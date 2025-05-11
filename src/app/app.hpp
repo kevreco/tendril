@@ -122,11 +122,11 @@ struct td_demo
 
     struct {
         bool fullscreen = true;
-        bool show_path = true;
+        bool show_guiding_path = true;
         float path_offset = 2.0f;
         bool show_normals = false;
         float normal_scale = 30.0f;
-        bool edit_path_points = true;
+        bool show_control_points = true;
         td_vec2 display_point_size = td_vec2{ 8.0f, 8.0f };
         td_vec2 grab_point_size = td_vec2{ 11.0f, 11.0f };
         float parameter_label_width = 120.0f;
@@ -158,11 +158,12 @@ struct td_demo
         int height;
     };
 
-    struct canvas_mouse_state
+    struct canvas_info
     {
-        bool hovered = false;
+        bool is_canvas_hovered = false;
         bool clicked = false;
-        td_vec2 pos; // mouse pos
+        td_vec2 mouse_pos{ -9999.0f, -9999.0f };
+        td_vec2 control_point_hovered{ -9999.0f, -9999.0f };
     };
 
     td_bitmap bitmap;
@@ -222,8 +223,8 @@ struct td_demo
         td_path path;
         td_point_array points;
 
-        // Various states for interactions
-        canvas_mouse_state mouse_state;
+        // Various info for interactions.
+        canvas_info canvas_info;
         td_curve_edit_state edit_state = td_curve_edit_state_EDIT;
         bool edit_state_changed;
     } draw_tendrilis_spiro;
@@ -284,15 +285,26 @@ struct td_demo
 
     void display_options();
 
-    void display_canvas_background(const td_vec2& scrolling);
+   
     void display_demo();
     void display_svg_widget(const td_path& path, float button_width);
 
-    // target_path: shape being displayed.
-    // pw_path: piecewise path optionally displayed.
-    // points: points being display or edited. 
-    canvas_mouse_state display_canvas(const td_path& target_path, const td_piecewise_path* pw_path, td_point_array* points);
-    canvas_mouse_state display_canvas_with_bender(path_bender* bender, td_point_array* points);
+    // Setup frame for canvas and handle interactions. 
+    canvas_info setup_canvas_layout(const td_path& target_path, const td_piecewise_path* pw_path, td_point_array* points);
+    canvas_info setup_canvas_layout_with_bender(path_bender* bender, td_point_array* points);
+
+    // Rendering buffer paths to avoid per-frame allocation.
+    td_path render_fill_buffer;
+    td_path render_stroke_buffer;
+    td_path tmp_for_offset;
+
+    void render_background(const td_vec2& scrolling);
+    void render_shape(const td_path& path);
+    void render_guiding_path(const td_path& path);
+    void render_control_points(const td_point_array& points, const td_vec2& hovered_point);
+    void render_control_points(const td_vec2* points, size_t count, const td_vec2& hovered_point);
+
+    void render_lines(const td_vec2* points, size_t count, const td_rgba8& color);
 
     td_font_store* get_font(int font_type);
 
