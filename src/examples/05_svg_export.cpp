@@ -14,4 +14,6 @@ int main(void)
 
     // Save path to .svg with relative values.
     td::path_to_svg_file(path, "relative.svg", 256, 256, "darkgreen", td_svg_options_STROKE | td_svg_options_RELATIVE_COORD);
+    
+    return 0;
 }

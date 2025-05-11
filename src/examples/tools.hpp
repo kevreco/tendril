@@ -8,8 +8,7 @@
     int stride = 4 * (width); \
 	int success = stbi_write_png((filename), (width), (height), 4, (buffer), stride); \
 	(void)success; \
-	TD_ASSERT(success); \
-	return success; \
+	assert(success && "Could not write .png file"); \
 } while (0);
 
 #endif

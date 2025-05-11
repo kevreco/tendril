@@ -16,7 +16,10 @@ int main(void)
 {
     // Initialize font.
     td_font_store font;
-    td_font_store::init_from_file(&font, FONT_PATH, 0);
+    if (!td_font_store::init_from_file(&font, FONT_PATH, 0))
+    {
+        return -1;
+    }
     
     // Create path.
     td_path tendrilis_path;
@@ -53,4 +56,5 @@ int main(void)
 
     // Destroy font.
     td_font_store::destroy(&font);
+    return 0;
 }

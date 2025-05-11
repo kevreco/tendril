@@ -13,19 +13,20 @@ static void my_project(const char* project_name, const char* toolchain, const ch
 
 int main()
 {
+    const char* path = NULL;
     cb_init();
 
-    build_with("Debug");
+    path = build_with("Debug");
     
 #ifdef CI_BUILD
     cb_clear(); /* Clear all values of cb. */
 
-    build_with("Release");
+    path = build_with("Release");
 #endif
 
     cb_destroy();
 
-    return 0;
+    return path != NULL ? 0: -1;
 }
 
 static const char* build_with(const char* config)
@@ -120,7 +121,13 @@ static const char* build_with(const char* config)
             // Run example
             const char* example_exe = cb_bake();
             const char* example_out_dir = cb_get_output_directory(cb_current_project(), &tool_chain);
-            cb_process_in_directory(example_exe, example_out_dir);
+            int exit_code = cb_process_in_directory(example_exe, example_out_dir);
+
+            if (exit_code != 0)
+            {
+                fprintf(stderr, "Could not build example: %s (exited with: %d)\n", examples[i].name, exit_code);
+                return NULL;
+            }
         }
     }
 

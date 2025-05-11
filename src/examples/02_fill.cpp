@@ -22,4 +22,6 @@ int main(void)
     
     // Save path to image.
     save_buffer_to_png("image.png", buffer, width, height);
+    
+    return 0;
 }

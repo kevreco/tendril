@@ -19,7 +19,9 @@ int main(void)
     // Rasterize path.
     td_rasterizer raster;
     raster.render_stroke_path(path, buffer, width, height, color);
-    
+   
     // Save path to image.
     save_buffer_to_png("image.png", buffer, width, height);
+
+    return 0;
 }
