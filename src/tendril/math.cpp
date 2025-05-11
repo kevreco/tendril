@@ -11,6 +11,8 @@
 //    td_bezier
 //    td_transform
 //    periodic functions
+//    td_line_line_intersection
+//    td_line_offset_by
 
 // ============================================================================
 // misc
@@ -65,7 +67,7 @@ td_vec2 td::lerp(const td_vec2& a, const td_vec2& b, float t)
     return (a * (1.0f - t)) + (b * t);
 }
 
-td_vec2 td::inv_lerp(const td_vec2& a, const td_vec2 b, float t)
+td_vec2 td::inv_lerp(const td_vec2& a, const td_vec2& b, float t)
 {
     return (td_vec2(t, t) - a) / (b - a);
 }
@@ -85,7 +87,7 @@ td_vec2 td::sign(const td_vec2& v)
     return td_vec2(td_signf(v.x), td_signf(v.y));
 }
 
-td_vec2 const td::perpendicular(td_vec2 that)
+td_vec2 td::perpendicular(const td_vec2& that)
 {
     return td_vec2(-that.y, that.x);
 }
@@ -234,43 +236,111 @@ td_bezier::td_bezier(td_vec2* p, int count)
     memcpy(p, p, count * sizeof(td_vec2));
 }
 
-td_vec2 td_bezier::at(float t) const
+td_vec2 td_bezier::eval_at(float t) const
 {
     td_vec2 v;
-    v.x = p[0].x * (t * t * t)
-        + p[1].x * (t * t)
-        + p[2].x * t
-        + p[3].x;
-
-    v.y = p[0].y * (t * t * t)
-        + p[1].y * (t * t)
-        + p[2].y * t
-        + p[3].y;
+    v.x = (1 - t) * (1 - t) * (1 - t) * p[0].x
+        + 3 * (1 - t) * (1 - t) * t * p[1].x
+        + 3 * (1 - t) * t * t * p[2].x
+        + t * t * t * p[3].x;
+    v.y = (1 - t) * (1 - t) * (1 - t) * p[0].y
+        + 3 * (1 - t) * (1 - t) * t * p[1].y
+        + 3 * (1 - t) * t * t * p[2].y
+        + t * t * t * p[3].y;
     return v;
 }
 
 td_vec2 td_bezier::tangent(float t) const
 {
-    td_vec2 v;
-    v.x = 3.0f * p[0].x * (t * t)
-        + 2.0f * p[1].x * t
-        + 1.0f * p[2].x;
+    return (p[1] - p[0]) * 3.0f * (1 - t) * (1 - t)
+        + (p[2] - p[1]) * 6.0f * t * (1 - t)
+        + (p[3] - p[2]) * 3.0f * t * t;
+}
 
-    v.y = 3.0f * p[0].y * (t * t)
-        + 2.0f * p[1].y * t
-        + 1.0f * p[2].y;
+td_vec2 td_bezier::unit_tangent(float t) const
+{
+    td_vec2 v = tangent(t);
+    td::normalize(&v);
     return v;
 }
 
-td_vec2 td_bezier::normal_raw(float t) const
+// Use Tiller and Hanson algorithm to (approximately) offset the bezier curve.
+td_bezier td_bezier::offset_by(float offset_val) const
+{
+    td_vec2 p0 = p[0];
+    td_vec2 p1 = p[1];
+    td_vec2 p2 = p[2];
+    td_vec2 p3 = p[3];
+
+    td_vec2 line1[2];
+    td_vec2 line2[2];
+    td_vec2 line3[2];
+
+    td_line_offset_by(p[0], p[1], line1, offset_val);
+    td_line_offset_by(p[1], p[2], line2, offset_val);
+    td_line_offset_by(p[2], p[3], line3, offset_val);
+
+    td_vec2 intersect1;
+    td_line_line_intersection(line1[0], line1[1], line2[0], line2[1], &intersect1);
+    td_vec2 intersect2;
+    td_line_line_intersection(line2[0], line2[1], line3[0], line3[1], &intersect2);
+
+    return td_bezier{ line1[0], intersect1, intersect2,  line3[1]};
+}
+
+td_vec2 td_bezier::offset_at(float t, float offset) const
+{
+    td_vec2 p = eval_at(t);
+    td_vec2 n = unit_normal(t);
+
+    return td_vec2{ p + n * offset };
+}
+
+td_vec2 td_bezier::raw_normal(float t) const
 {
     td_vec2 v = tangent(t);
     return td_vec2(-v.y, v.x);
 }
 
+td_vec2 td_bezier::unit_normal(float t) const
+{
+    td_vec2 v = raw_normal(t);
+    td::normalize(&v);
+    return v;
+}
+
 bool td_bezier::within_tolerance(float tolerance) const
 {
     return within_tolerance(p[0], p[1], p[2], p[3], tolerance);
+}
+
+void td_bezier::split(td_bezier* left, td_bezier* right)
+{
+    // Split bezier
+    float x12 = (x1 + x2) * 0.5f;     float y12 = (y1 + y2) * 0.5f;
+    float x23 = (x2 + x3) * 0.5f;     float y23 = (y2 + y3) * 0.5f;
+    float x34 = (x3 + x4) * 0.5f;     float y34 = (y3 + y4) * 0.5f;
+    float x123 = (x12 + x23) * 0.5f;   float y123 = (y12 + y23) * 0.5f;
+    float x234 = (x23 + x34) * 0.5f;   float y234 = (y23 + y34) * 0.5f;
+    float x1234 = (x123 + x234) * 0.5f; float y1234 = (y123 + y234) * 0.5f;
+
+    left->p[0].x = x1;
+    left->p[0].y = y1;
+    left->p[1].x = x12;
+    left->p[1].y = y12;
+    left->p[2].x = x123;
+    left->p[2].y = y123;
+    left->p[3].x = x1234;
+    left->p[3].y = y1234;
+
+    right->p[0].x = x1234;
+    right->p[0].y = y1234;
+    right->p[1].x = x234;
+    right->p[1].y = y234;
+    right->p[2].x = x34;
+    right->p[2].y = y34;
+    right->p[3].x = x4;
+    right->p[3].y = y4;
 }
 
 bool td_bezier::equals(const td_bezier& left, const td_bezier& right)
@@ -293,7 +363,7 @@ bool td_bezier::within_tolerance(float x1, float y1, float x2, float y2, float x
 
 bool td_bezier::within_tolerance(const td_vec2& p1, const td_vec2& p2, const td_vec2& p3, const td_vec2& p4, float tolerance)
 {
-    return within_tolerance(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y , tolerance);
+    return within_tolerance(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, tolerance);
 }
 
 // This is using the De Casteljau's algorithm
@@ -435,7 +505,7 @@ float td_transform::determinant() const
 td_transform td_transform::inversed() const
 {
     float det = determinant();
-    
+
     if (det == 0)
     {
         return identity();
@@ -449,4 +519,38 @@ td_transform td_transform::inversed() const
     t.dx = m21 * dy - m12 * dx;
     t.dy = m22 * dx - m11 * dy;
     return t;
+}
+
+bool td_line_line_intersection(const td_vec2& line1a, const td_vec2& line1b, const td_vec2& line2a, const td_vec2& line2b, td_vec2* intersection)
+{
+    const td_vec2 line1_dir = line1b - line1a;
+    const td_vec2 line2_dir = line2b - line2a;
+    // const td_vec2 a = line1a; // Not used
+    const td_vec2 b = line1b;
+    const td_vec2 c = line2a;
+    const td_vec2 d = line2b;
+
+    const float ABxCD = td::cross(line1_dir, line2_dir);
+
+    // Collinear or parallel
+
+    if (ABxCD == 0.0f)
+    {
+        return false;
+    }
+
+    float left_term = b.x * line1a.y - b.y * line1a.x;
+    float right_term = d.x * line2a.y - d.y * line2a.x;
+
+    td_vec2 numer = line2_dir * left_term - line1_dir * right_term;
+    *intersection = numer / ABxCD;
+
+    return true;
+}
+
+void td_line_offset_by(const td_vec2& a, const td_vec2& b, td_vec2* line_out, float offset)
+{
+    td_vec2 n = td::normalized(td::perpendicular(b - a)) * offset;
+    line_out[0] = a + n;
+    line_out[1] = b + n;
 }

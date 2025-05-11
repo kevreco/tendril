@@ -12,6 +12,9 @@
 //      td_transform_inserter
 //    font.cpp
 //      td_codepoint_iterator
+//    math.cpp
+//      td_line_line_intersection
+//      td_line_offset_by
 //    byte operations
 
 #ifndef TD_TENDRIL_INTERNAL_HPP
@@ -266,6 +269,15 @@ struct td_codepoint_iterator
 
     bool get_next();
 };
+
+
+//=============================================================================
+// math.cpp
+//=============================================================================
+
+bool td_line_line_intersection(const td_vec2& line1a, const td_vec2& line1b, const td_vec2& line2a, const td_vec2& line2b, td_vec2* intersection);
+
+void td_line_offset_by(const td_vec2& a, const td_vec2& b, td_vec2* line_out, float offset);
 
 // ============================================================================
 // rasterize.cpp

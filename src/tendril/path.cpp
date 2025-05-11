@@ -659,6 +659,95 @@ void td::path_to_fragmented_path(const td_path& path, struct td_path* fragmented
     traverse_flatten_path(path, td_path_fragmenter::func, &fragmenter);
 }
 
+void td::path_to_offset_path(const td_path& path, td_path* offset_path, float offset)
+{
+    if (!path.points.size())
+    {
+        return;
+    }
+
+    bool was_move_to = true;
+
+    td_vec2 current_point = path.points[0];
+
+    td_path_iterator it(path);
+
+    while (it.get_next())
+    {
+        switch (it.cmd) {
+        case td_path_cmd_MOVE_TO:
+        {
+            offset_path->move_to(it.points[0]);
+
+            current_point = it.points[0];
+            was_move_to = true;
+            break;
+        }
+        case td_path_cmd_LINE_TO:
+        {
+            td_vec2 line[2];
+            td_line_offset_by(current_point, it.points[0], line, offset);
+
+            // Offset the previous move_to point since we needed an extra point to define a line
+            if (was_move_to)
+            {
+                offset_path->points[offset_path->points.size() - 1] = line[0];
+            }
+
+            offset_path->line_to(line[1]);
+
+            current_point = it.points[0];
+
+            break;
+        }
+
+        case td_path_cmd_CUBIC_TO:
+        {
+            const float curve_tolerance = TD_BEZIER_DEFAULT_TOLERANCE;
+            td_bezier curves[8];
+            td_bezier* last_curve = curves + 8 - 1;
+
+            curves[0] = td_bezier{ current_point , it.points[0], it.points[1], it.points[2] };
+            td_bezier* b = curves;
+            while (b >= curves)
+            {
+
+                if (b->within_tolerance(curve_tolerance) || b == last_curve)
+                {
+                    td_bezier offset_curve= b->offset_by(offset);
+
+                    // Offset the previous move_to point since we needed an extra point to define a line
+                    if (was_move_to)
+                    {
+                        offset_path->points[offset_path->points.size() - 1] = offset_curve[0];
+                        was_move_to = false;
+                    }
+
+                    offset_path->cubic_to(offset_curve.p[1], offset_curve.p[2], offset_curve.p[3]);
+                    b -= 1;
+                }
+                else
+                {
+                    b->split(b + 1, b);
+                    b += 1;
+                }
+            }
+
+            current_point = it.points[2];
+            was_move_to = false;
+            break;
+        }
+        case td_path_cmd_CLOSE:
+        {
+            offset_path->close();
+            was_move_to = false;
+        }
+        default:
+            TD_ASSERT(0 && "Unreachable");
+        }
+    }
+}
+
 void td::path_to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color, int svg_option)
 {
     FILE* f = 0;

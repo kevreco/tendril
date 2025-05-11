@@ -281,7 +281,7 @@ namespace td {
 
     td_vec2 lerp(const td_vec2& a, const td_vec2& b, float t);
 
-    td_vec2 inv_lerp(const td_vec2& a, const td_vec2 b, float t);
+    td_vec2 inv_lerp(const td_vec2& a, const td_vec2& b, float t);
 
     float dot(const td_vec2& a, const td_vec2& b);
 
@@ -289,7 +289,7 @@ namespace td {
 
     td_vec2 sign(const td_vec2& v);
    
-    td_vec2 const perpendicular(td_vec2 that);
+    td_vec2 perpendicular(const td_vec2& that);
 }
 
 struct td_vec2i
@@ -358,9 +358,9 @@ typedef void (*td_add_point_func_t)(void* ctx, const td_vec2& point);
 
 #define TD_BEZIER_DEFAULT_TOLERANCE 1.25f
 
+// Cubic bezier curve
 union td_bezier
 {
-   
     td_vec2 p[4];
     struct {
         float x1;
@@ -384,13 +384,28 @@ union td_bezier
 
     td_bezier(td_vec2* p, int count);
 
-    td_vec2 at(float t) const;
+    // t is a value between 0.0 and 1.0
+    td_vec2 eval_at(float t) const;
 
+    // t is a value between 0.0 and 1.0
     td_vec2 tangent(float t) const;
 
-    td_vec2 normal_raw(float t) const;
+    // t is a value between 0.0 and 1.0
+    td_vec2 unit_tangent(float t) const;
+
+    // t is a value between 0.0 and 1.0
+    td_vec2 raw_normal(float t) const;
+
+    // t is a value between 0.0 and 1.0
+    td_vec2 unit_normal(float t) const;
+
+    td_bezier offset_by(float offset) const;
+
+    td_vec2 offset_at(float t, float offset) const;
 
     bool within_tolerance(float tolerance) const;
+
+    void split(td_bezier* left, td_bezier* right);
 
     static bool equals(const td_bezier& left, const td_bezier& right);
 
@@ -771,6 +786,11 @@ namespace td {
     // Must not be confused with to_piecewise_path.
     void path_to_fragmented_path(const td_path& path, td_path* fragmented, float fragment_length = 5.0f);
 
+    // Create path with an offset.
+    // The resulting offsetpath will be parallel to the original path.
+    // NOTE: It uses an approximation for bezier curves.
+    void path_to_offset_path(const td_path& path, td_path* offset_path, float offset);
+
     // Create SVG file with a single path.
     void path_to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color = "black", int option = td_svg_options_DEFAULT);
 
@@ -916,8 +936,6 @@ struct td_stroke_option
     /// @param limit  the limit on maximum pointiness allowed for miter joins
     ///
     float miter_limit = 10.0f;
-    // Tessellation tolerance when using add_casteljau_cubic_to
-    float bezier_tesselation_tolerance = 1.25f;
 };
 
 typedef void (*td_composite_operation_func_t)(uint32_t* dest, uint32_t count, td_rgba8 color, unsigned char alpha);
