@@ -1127,8 +1127,8 @@ static bool display_curve_toolstrip(td_curve_edit_state* edit_state)
 		const char* id;
 		const char* text;
 	} items[] = {
-		{td_curve_edit_state_VIEW, ICON_LC_SPLINE, "##1", "Move curve point"},
-		{td_curve_edit_state_EDIT, ICON_LC_GIT_BRANCH_PLUS, "##2", "Add point to curve" }
+		{td_curve_edit_state_VIEW, " " ICON_LC_SPLINE, "##1", "Move curve point"},
+		{td_curve_edit_state_EDIT,  " " ICON_LC_GIT_BRANCH_PLUS, "##2", "Add point to curve" }
 	};
 
 	item_type selected_item = items[*edit_state];
@@ -1136,10 +1136,10 @@ static bool display_curve_toolstrip(td_curve_edit_state* edit_state)
 	for (size_t i = 0; i < td_size(items); i += 1)
 	{
 		item_type item = items[i];
-		
+
 		ImVec2 screen_pos = ImGui::GetCursorScreenPos();
 		float available_width = ImGui::GetContentRegionAvail().x;
-		float item_height = (ImGui::CalcTextSize(item.text) + style.FramePadding * 2).y;
+		float item_height = (ImGui::CalcTextSize(item.text) + style.FramePadding * 2).y + style.ItemSpacing.y;
 
 		// Add invisible button taking the whole space to have a convenient big box to trigger the "hover" state.
 		if (ImGui::InvisibleButton(item.id, ImVec2(available_width, item_height)))
@@ -1150,37 +1150,24 @@ static bool display_curve_toolstrip(td_curve_edit_state* edit_state)
 		bool is_hovered = ImGui::IsItemHovered();
 		bool is_selected = selected_item.state == item.state;
 
-		// Add left mark when mouse is hovering the item
-		ImVec2 left_box_min = ImGui::GetItemRectMin();
-		ImVec2 left_box_max(left_box_min.x + style.FramePadding.x + 1, left_box_min.y + item_height);
-
-		int color = is_hovered ? ImGuiCol_CheckMark : ImGuiCol_FrameBg;
-		draw_list->AddRectFilled(left_box_min, left_box_max, ImGui::GetColorU32(color));
-
-		// Advance cursor after the left mark
-		ImVec2 left_box_size(left_box_max - left_box_min);
-		screen_pos.x += left_box_size.x;
-
-		// Restore imgui cursor where it was before the invisible button.
 		ImGui::SetCursorScreenPos(screen_pos);
 
-		// Display icon in a non-interactive button with custom color
+		// Emulate standard radio button interaction 
+		if (is_hovered)
 		{
-			ImGui::AlignTextToFramePadding();
-
-			color = is_selected
-				? ImGuiCol_ButtonHovered
-				: ImGuiCol_Button;
-
-			ImVec4 color_vec4 = ImGui::GetStyle().Colors[color];
-			ImGui::PushStyleColor(ImGuiCol_Button, color_vec4);
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color_vec4);
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, color_vec4);
-			ImGui::Button(item.icon);
-			ImGui::PopStyleColor(3);
+			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetStyle().Colors[ImGuiCol_FrameBgHovered]);
 		}
 
-		// Display text
+		if (ImGui::RadioButton(item.icon, is_selected))
+		{
+			state_changed = set_curve_edit_state(edit_state, item.state);
+		}
+
+		if (is_hovered)
+		{
+			ImGui::PopStyleColor();
+		}
+
 		ImGui::SameLine();
 		ImGui::Text(item.text);
 	}
