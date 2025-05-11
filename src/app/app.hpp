@@ -122,7 +122,7 @@ struct td_demo
 
     struct {
         bool fullscreen = true;
-        bool show_guiding_path = true;
+        bool show_control_path = true;
         float path_offset = 2.0f;
         bool show_normals = false;
         float normal_scale = 30.0f;
@@ -173,53 +173,58 @@ struct td_demo
     struct {
         int font_type = td_font_type_REGULAR;
         const char* id = "Text on line";
+        const char* description = "Show a text displayed along a straight line.\nThe points defining the line can be moved.";
         std::string text = "Hello World";
         float font_size = 40.0f;
         td_path shape;
-        td_path guiding_path;
+        td_path control_path;
     } text_on_line;
 
     struct {
         int font_type = td_font_type_REGULAR;
         const char* id = "Text on polyline";
+        const char* description = "Show a text displayed along a polyline.\nThe points defining the lines can be moved.";
         std::string text = "Hello World";
         float font_size = 89.0f;
         td_path shape;
-        td_path guiding_path;
+        td_path control_path;
     } text_on_polyline;
 
     struct {
         int font_type = td_font_type_REGULAR;
         const char* id = "Text on curve";
+        const char* description = "Show a text displayed along a curve.\nThe points defining the curve can be moved.";
         std::string text = "Hello World";
         float font_size = 45.0f;
         td_path shape;
-        td_path guiding_path;
+        td_path control_path;
     } text_on_curve;
 
     struct {
-       
         const char* id = "Triangle on curve";
+        const char* description = "Show a triangle being distorted along a curve.\nThe points defining the curve can be moved.";
         td_path shape;
-        td_path guiding_path;
+        td_path control_path;
     } triangle_on_curve;
 
     struct {
         int font_type = td_font_type_TENDRILIS;
         const char* id = "Tendrilis on curve";
+        const char* description = "Show a Tendrilis (text with special font) being displayed along a curve.\nThe points defining the curve can be moved.";
         std::string text = "Tendrilis on curve";
         float font_size = 30.0f;
         td_path shape;
-        td_path guiding_path;
+        td_path control_path;
     } tendrilis_on_curve;
 
     struct {
         int font_type = td_font_type_TENDRILIS;
         const char* id = "Draw Tendrilis (Spiro)";
+        const char* description = "Create a custom Tendrilis interactively by adding point or moving them.\nSee the tools panel on the right side.";
         std::string text = "Draw tendrilis";
         float font_size = 30.0f;
         td_path shape;
-        td_path guiding_path;
+        td_path control_path;
         td_point_array points;
 
         // Various info for interactions.
@@ -233,25 +238,25 @@ struct td_demo
     struct {
         const char* id = "Rect on line";
         td_path shape;
-        td_path guiding_path;
+        td_path control_path;
     } rect_on_line;
 
     struct {
         const char* id = "Curve on line";
         td_path shape;
-        td_path guiding_path;
+        td_path control_path;
     } curve_on_line;
 
     struct {
         const char* id = "Vertical bars on curve";
         td_path shape;
-        td_path guiding_path;
+        td_path control_path;
     } vbars_on_curve;
 
     struct {
         const char* id = "Horizontal bars on curve";
         td_path shape;
-        td_path guiding_path;
+        td_path control_path;
     } hbars_on_curve;
 
     struct {
@@ -295,7 +300,7 @@ struct td_demo
 
     void render_background(const td_vec2& scrolling);
     void render_shape(const td_path& path);
-    void render_guiding_path(const td_path& path);
+    void render_control_path(const td_path& path);
     void render_control_points(const td_point_array& points, const td_vec2& hovered_point);
     void render_control_points(const td_vec2* points, size_t count, const td_vec2& hovered_point);
 

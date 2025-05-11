@@ -29,23 +29,23 @@ int main(void)
     const char* text_end = text + strlen(text);
     td::insert_text_to_path(&font, text, text_end, { 0,0 }, 36.0f, &tendrilis_path);
     
-    // The tendrilis will be created along this guiding path.
-    td_path guiding_path;
-    guiding_path.move_to(35.0f, 12.0f);
-    guiding_path.arc_to(100.0f, 75.0f, 0.0f, false, false, 205.0f, 107.0f);
+    // The tendrilis will be created along this control path.
+    td_path control_path;
+    control_path.move_to(35.0f, 12.0f);
+    control_path.arc_to(100.0f, 75.0f, 0.0f, false, false, 205.0f, 107.0f);
 
-    // Convert guiding path to to piecewise path.
-    td_piecewise_path pw_guiding_path;
+    // Convert control path to to piecewise path.
+    td_piecewise_path pw_control_path;
     
-    td::path_to_piecewise_path(guiding_path, &pw_guiding_path);
+    td::path_to_piecewise_path(control_path, &pw_control_path);
 
     // Fragment tendrilis path
     td_path fragmented;
     td::path_to_fragmented_path(tendrilis_path, &fragmented);
 
-    // Transform tendrilis path along the guiding path.
+    // Transform tendrilis path along the control path.
     bool interpolate_tangent = true;
-    td::transform_along_piecewise(pw_guiding_path, &fragmented.points, interpolate_tangent);
+    td::transform_along_piecewise(pw_control_path, &fragmented.points, interpolate_tangent);
 
     // Rasterize path.
     td_rasterizer raster;
