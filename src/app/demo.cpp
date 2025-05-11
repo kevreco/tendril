@@ -180,7 +180,7 @@ td_demo::td_demo()
 
 	// Text on line
 	{
-		text_on_line.path = directive_line;
+		text_on_line.guiding_path = directive_line;
 	}
 
 	// Text on polyline
@@ -192,12 +192,12 @@ td_demo::td_demo()
 
 		td::elements_multiply(&polyline, canvas_size);
 
-		text_on_polyline.path = polyline;
+		text_on_polyline.guiding_path = polyline;
 	}
 
 	// Text on curve
 	{
-		text_on_curve.path = directive_curve;
+		text_on_curve.guiding_path = directive_curve;
 	}
 
 	// Triangle on curve
@@ -210,7 +210,7 @@ td_demo::td_demo()
 
 		triangle_on_curve.target = triangle;
 
-		triangle_on_curve.path = directive_curve;
+		triangle_on_curve.guiding_path = directive_curve;
 	}
 
 	// Tendrilis on curve
@@ -221,7 +221,7 @@ td_demo::td_demo()
 
 		td::elements_multiply(&curve, canvas_size);
 
-		tendrilis_on_curve.path = curve;
+		tendrilis_on_curve.guiding_path = curve;
 	}
 
 	//
@@ -237,7 +237,7 @@ td_demo::td_demo()
 		td::elements_multiply(&rect, td_vec2(100.f, 100.0f));
 
 		rect_on_line.target = rect;
-		rect_on_line.path = directive_line;
+		rect_on_line.guiding_path = directive_line;
 	}
 
 	// Curve on line
@@ -257,7 +257,7 @@ td_demo::td_demo()
 
 		td::elements_multiply(&line, canvas_size);
 
-		curve_on_line.path = line;
+		curve_on_line.guiding_path = line;
 
 		curve_on_line.target = curve;
 
@@ -283,7 +283,7 @@ td_demo::td_demo()
 		td::elements_multiply(&bars, td_vec2(1.0f, -1.0f));
 		td::elements_multiply(&bars, td_vec2(100.f, 100.0f));
 
-		directive_curve.clone_to(&vbars_on_curve.path);
+		directive_curve.clone_to(&vbars_on_curve.guiding_path);
 		vbars_on_curve.target = bars;
 	}
 
@@ -302,7 +302,7 @@ td_demo::td_demo()
 		td::elements_multiply(&bars, td_vec2(1.0f, -1.0f));
 		td::elements_multiply(&bars, td_vec2(100.f, 100.0f));
 
-		hbars_on_curve.path = directive_curve;
+		hbars_on_curve.guiding_path = directive_curve;
 		hbars_on_curve.target = bars;
 	}
 }
@@ -320,8 +320,6 @@ void td_demo::display()
 	td_uint32_memset((uint32_t*)bitmap.data, background_color.to_u32(), TD_CANVAS_WIDTH * TD_CANVAS_HEIGHT);
 
 	display_demo();
-
-	handle_interactions();
 
 	// Upload texture to GPU.
 	bool loaded_or_updated = app_backend::load_or_update_texture(bitmap.data, bitmap.width, bitmap.height, &texture);
@@ -532,15 +530,15 @@ void td_demo::display_demo()
 			// Convert text to path
 			td::insert_text_to_path(font, text_on_line.text.data(), td_vec2(), text_on_line.font_size, &text_on_line.target);
 
-			td_path* path = apply_various_effect(&text_on_line.path);
+			td_path* path = apply_various_effect(&text_on_line.guiding_path);
 
 			bender.set(text_on_line.target, *path);
 
-			canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_line.path.points);
+			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_line.guiding_path.points);
 
 			render_shape(bender.result_path);
-			render_guiding_path(text_on_line.path);
-			render_control_points(text_on_line.path.points, info.control_point_hovered);
+			render_guiding_path(text_on_line.guiding_path);
+			render_control_points(text_on_line.guiding_path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_TEXT_ON_POLYLINE:
@@ -552,15 +550,15 @@ void td_demo::display_demo()
 			// Convert text to path
 			td::insert_text_to_path(font, text_on_polyline.text.data(), td_vec2(), text_on_polyline.font_size, &text_on_polyline.target);
 
-			td_path* path = apply_various_effect(&text_on_polyline.path);
+			td_path* path = apply_various_effect(&text_on_polyline.guiding_path);
 
 			bender.set(text_on_polyline.target, *path);
 
-			canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_polyline.path.points);
+			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_polyline.guiding_path.points);
 
 			render_shape(bender.result_path);
-			render_guiding_path(text_on_polyline.path);
-			render_control_points(text_on_polyline.path.points, info.control_point_hovered);
+			render_guiding_path(text_on_polyline.guiding_path);
+			render_control_points(text_on_polyline.guiding_path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_TEXT_ON_CURVE:
@@ -572,30 +570,30 @@ void td_demo::display_demo()
 			// Convert text to path
 			td::insert_text_to_path(font, text_on_curve.text.data(), td_vec2(), text_on_curve.font_size, &text_on_curve.target);
 
-			td_path* path = apply_various_effect(&text_on_curve.path);
+			td_path* path = apply_various_effect(&text_on_curve.guiding_path);
 
 			bender.set(text_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_curve.path.points);
+			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &text_on_curve.guiding_path.points);
 
 			render_shape(bender.result_path);
-			render_guiding_path(text_on_curve.path);
-			render_control_points(text_on_curve.path.points, info.control_point_hovered);
+			render_guiding_path(text_on_curve.guiding_path);
+			render_control_points(text_on_curve.guiding_path.points, info.control_point_hovered);
 			break;
 		}
 		
 		case demo_type_TRIANGLE_ON_CURVE:
 		{
-			td_path* path = apply_various_effect(&triangle_on_curve.path);
+			td_path* path = apply_various_effect(&triangle_on_curve.guiding_path);
 
 			int flags = path_bender_flags_INTERPOLATE_TANGENT | path_bender_flags_STRETCH_TARGET;
 			bender.set(triangle_on_curve.target, *path, flags);
 
-			canvas_info info = setup_canvas_layout_with_bender(&bender, &triangle_on_curve.path.points);
+			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &triangle_on_curve.guiding_path.points);
 
 			render_shape(bender.result_path);
-			render_guiding_path(triangle_on_curve.path);
-			render_control_points(triangle_on_curve.path.points, info.control_point_hovered);
+			render_guiding_path(triangle_on_curve.guiding_path);
+			render_control_points(triangle_on_curve.guiding_path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_TENDRILIS_ON_CURVE: {
@@ -611,15 +609,15 @@ void td_demo::display_demo()
 			// Convert text to path
 			td::insert_text_to_path(font, text.data(), td_vec2(), tendrilis_on_curve.font_size, &tendrilis_on_curve.target);
 
-			td_path* path = apply_various_effect(&tendrilis_on_curve.path);
+			td_path* path = apply_various_effect(&tendrilis_on_curve.guiding_path);
 
 			bender.set(tendrilis_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			canvas_info info = setup_canvas_layout_with_bender(&bender, &tendrilis_on_curve.path.points);
+			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &tendrilis_on_curve.guiding_path.points);
 
 			render_shape(bender.result_path);
-			render_guiding_path(tendrilis_on_curve.path);
-			render_control_points(tendrilis_on_curve.path.points, info.control_point_hovered);
+			render_guiding_path(tendrilis_on_curve.guiding_path);
+			render_control_points(tendrilis_on_curve.guiding_path.points, info.control_point_hovered);
 			break;
 		}
 
@@ -648,87 +646,104 @@ void td_demo::display_demo()
 				points.push_back(spiro.canvas_info.mouse_pos);
 			}
 
-			spiro.path.clear();
-			points_to_spiro(points, &spiro.path);
+			spiro.guiding_path.clear();
+			points_to_spiro(points, &spiro.guiding_path);
 
-			td_path* path = apply_various_effect(&spiro.path);
+			td_path* path = apply_various_effect(&spiro.guiding_path);
 
 			bender.set(spiro.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
 			spiro.canvas_info = setup_canvas_layout_with_bender(&bender, &spiro.points);
 
 			render_shape(bender.result_path);
-			render_guiding_path(spiro.path);
+			render_guiding_path(spiro.guiding_path);
 			render_control_points(points, spiro.canvas_info.control_point_hovered);
+
+			// Handle interaction
+			{
+				// On right click go back to view mode.
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+				{
+					spiro.edit_state_changed = set_curve_edit_state(&spiro.edit_state, td_curve_edit_state_VIEW) || spiro.edit_state_changed;
+				}
+
+				// On left click add a point.
+				if (spiro.edit_state == td_curve_edit_state_EDIT
+					&& spiro.canvas_info.is_canvas_hovered
+					&& spiro.canvas_info.clicked)
+				{
+					spiro.points.push_back(spiro.canvas_info.mouse_pos);
+				}
+			}
 			break;
 		}
 		case demo_type_RECT_ON_LINE: {
 
-			td_path* path = apply_various_effect(&rect_on_line.path);
+			td_path* path = apply_various_effect(&rect_on_line.guiding_path);
 
 			bool smooth = true;
 			bender.set(rect_on_line.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			canvas_info info = setup_canvas_layout_with_bender(&bender, &rect_on_line.path.points);
+			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &rect_on_line.guiding_path.points);
 
 			render_shape(bender.result_path);
-			render_guiding_path(rect_on_line.path);
-			render_control_points(rect_on_line.path.points, info.control_point_hovered);
+			render_guiding_path(rect_on_line.guiding_path);
+			render_control_points(rect_on_line.guiding_path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_CURVE_ON_LINE: {
 
-			td_path* path = apply_various_effect(&curve_on_line.path);
+			td_path* path = apply_various_effect(&curve_on_line.guiding_path);
 
 			bool smooth = true;
 			bender.set(curve_on_line.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			canvas_info info = setup_canvas_layout_with_bender(&bender, &curve_on_line.path.points);
+			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &curve_on_line.guiding_path.points);
 
 			render_shape(bender.result_path);
-			render_guiding_path(curve_on_line.path);
-			render_control_points(curve_on_line.path.points, info.control_point_hovered);
+			render_guiding_path(curve_on_line.guiding_path);
+			render_control_points(curve_on_line.guiding_path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_VBARS_ON_CURVE: {
 
-			td_path* path = apply_various_effect(&vbars_on_curve.path);
+			td_path* path = apply_various_effect(&vbars_on_curve.guiding_path);
 
 			bool smooth = true;
 			bender.set(vbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			canvas_info info = setup_canvas_layout_with_bender(&bender, &vbars_on_curve.path.points);
+			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &vbars_on_curve.guiding_path.points);
 
 			render_shape(bender.result_path);
-			render_guiding_path(vbars_on_curve.path);
-			render_control_points(vbars_on_curve.path.points, info.control_point_hovered);
+			render_guiding_path(vbars_on_curve.guiding_path);
+			render_control_points(vbars_on_curve.guiding_path.points, info.control_point_hovered);
 
 			break;
 		}
 		case demo_type_HBARS_ON_CURVE: {
 
-			td_path* path = apply_various_effect(&hbars_on_curve.path);
+			td_path* path = apply_various_effect(&hbars_on_curve.guiding_path);
 
 			bool smooth = true;
 			bender.set(hbars_on_curve.target, *path, path_bender_flags_INTERPOLATE_TANGENT);
 
-			canvas_info info = setup_canvas_layout_with_bender(&bender, &hbars_on_curve.path.points);
+			td_canvas_info info = setup_canvas_layout_with_bender(&bender, &hbars_on_curve.guiding_path.points);
 
 			render_shape(bender.result_path);
-			render_guiding_path(hbars_on_curve.path);
-			render_control_points(hbars_on_curve.path.points, info.control_point_hovered);
+			render_guiding_path(hbars_on_curve.guiding_path);
+			render_control_points(hbars_on_curve.guiding_path.points, info.control_point_hovered);
 			break;
 		}
 		case demo_type_DRAW_ARC: {
 
-			draw_arc.path.clear();
-			draw_arc.path.move_to(draw_arc.mx, draw_arc.my);
+			td_path path;
+			path.clear();
+			path.move_to(draw_arc.mx, draw_arc.my);
+			path.arc_to(draw_arc.rx, draw_arc.ry, draw_arc.xrotation, draw_arc.large_arc, draw_arc.sweep_flag, draw_arc.x, draw_arc.y);
 
-			draw_arc.path.arc_to(draw_arc.rx, draw_arc.ry, draw_arc.xrotation, draw_arc.large_arc, draw_arc.sweep_flag, draw_arc.x, draw_arc.y);
+			td_canvas_info info = setup_canvas_layout(path, NULL, NULL);
 
-			canvas_info info = setup_canvas_layout(draw_arc.path, NULL, NULL);
-
-			render_shape(draw_arc.path);
+			render_shape(path);
 			break;
 		}
 		}
@@ -852,12 +867,12 @@ void td_demo::display_svg_widget(const td_path& path, float button_width)
 	ImGui::InputText("##SVG Export", svg_file_name, sizeof(svg_file_name));
 }
 
-td_demo::canvas_info td_demo::setup_canvas_layout(const td_path& target_path, const td_piecewise_path* pw_directive_path, td_point_array* points)
+td_demo::td_canvas_info td_demo::setup_canvas_layout(const td_path& target_path, const td_piecewise_path* pw_directive_path, td_point_array* points)
 {
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	ImVec2 canvas_min = ImGui::GetCursorScreenPos();
 
-	td_demo::canvas_info info;
+	td_demo::td_canvas_info info;
 
 	ImVec2 canvas_size = ImVec2(TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT);
 
@@ -953,7 +968,7 @@ td_demo::canvas_info td_demo::setup_canvas_layout(const td_path& target_path, co
 	return info;
 }
 
-td_demo::canvas_info td_demo::setup_canvas_layout_with_bender(path_bender* bender, td_point_array* points)
+td_demo::td_canvas_info td_demo::setup_canvas_layout_with_bender(path_bender* bender, td_point_array* points)
 {
 	return setup_canvas_layout(bender->result_path, &bender->pw_directive_path, points);
 }
@@ -1052,30 +1067,6 @@ void td_demo::render_lines(const td_vec2* points, size_t count, const td_rgba8& 
 td_font_store* td_demo::get_font(int font_type)
 {
 	return font_type == td_font_type_REGULAR ? &regular_font : &tendrilis_font;
-}
-
-void td_demo::handle_interactions()
-{
-	switch (selected_demo)
-	{
-	case demo_type_DRAW_TENDRILIS_SPIRO:
-	{
-		auto& spiro = draw_tendrilis_spiro;
-
-		// On right click go back to view mode
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-		{
-			spiro.edit_state_changed = set_curve_edit_state(&spiro.edit_state, td_curve_edit_state_VIEW) || spiro.edit_state_changed;
-		}
-
-		if (spiro.edit_state == td_curve_edit_state_EDIT
-			&& spiro.canvas_info.is_canvas_hovered
-			&& spiro.canvas_info.clicked)
-		{
-			spiro.points.push_back(spiro.canvas_info.mouse_pos);
-		}
-	}
-	}
 }
 
 static td_path* apply_various_effect(td_path* input_path)

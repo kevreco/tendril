@@ -158,7 +158,7 @@ struct td_demo
         int height;
     };
 
-    struct canvas_info
+    struct td_canvas_info
     {
         bool is_canvas_hovered = false;
         bool clicked = false;
@@ -176,7 +176,7 @@ struct td_demo
         std::string text = "Hello World";
         float font_size = 40.0f;
         td_path target;
-        td_path path;
+        td_path guiding_path;
     } text_on_line;
 
     struct {
@@ -185,7 +185,7 @@ struct td_demo
         std::string text = "Hello World";
         float font_size = 89.0f;
         td_path target;
-        td_path path;
+        td_path guiding_path;
     } text_on_polyline;
 
     struct {
@@ -194,7 +194,7 @@ struct td_demo
         std::string text = "Hello World";
         float font_size = 45.0f;
         td_path target;
-        td_path path;
+        td_path guiding_path;
     } text_on_curve;
 
     struct {
@@ -202,7 +202,7 @@ struct td_demo
         const char* id = "Triangle on curve";
         float font_size = 30.0f;
         td_path target;
-        td_path path;
+        td_path guiding_path;
     } triangle_on_curve;
 
     struct {
@@ -211,7 +211,7 @@ struct td_demo
         std::string text = "Tendrilis on curve";
         float font_size = 30.0f;
         td_path target;
-        td_path path;
+        td_path guiding_path;
     } tendrilis_on_curve;
 
     struct {
@@ -220,11 +220,11 @@ struct td_demo
         std::string text = "Draw tendrilis";
         float font_size = 30.0f;
         td_path target;
-        td_path path;
+        td_path guiding_path;
         td_point_array points;
 
         // Various info for interactions.
-        canvas_info canvas_info;
+        td_canvas_info canvas_info;
         td_curve_edit_state edit_state = td_curve_edit_state_EDIT;
         bool edit_state_changed;
     } draw_tendrilis_spiro;
@@ -235,33 +235,33 @@ struct td_demo
         const char* id = "Rect on line";
         float font_size = 30.0f;
         td_path target;
-        td_path path;
+        td_path guiding_path;
     } rect_on_line;
 
     struct {
         const char* id = "Curve on line";
         float font_size = 30.0f;
         td_path target;
-        td_path path;
+        td_path guiding_path;
     } curve_on_line;
 
     struct {
         const char* id = "Vertical bars on curve";
         float font_size = 30.0f;
         td_path target;
-        td_path path;
+        td_path guiding_path;
     } vbars_on_curve;
 
     struct {
         const char* id = "Horizontal bars on curve";
         float font_size = 30.0f;
         td_path target;
-        td_path path;
+        td_path guiding_path;
     } hbars_on_curve;
 
     struct {
         const char* id = "Draw arc";
-        td_path path;
+
         // move x and y
         float mx = 30.0f;
         float my = 100.0f;
@@ -290,8 +290,8 @@ struct td_demo
     void display_svg_widget(const td_path& path, float button_width);
 
     // Setup frame for canvas and handle interactions. 
-    canvas_info setup_canvas_layout(const td_path& target_path, const td_piecewise_path* pw_path, td_point_array* points);
-    canvas_info setup_canvas_layout_with_bender(path_bender* bender, td_point_array* points);
+    td_canvas_info setup_canvas_layout(const td_path& target_path, const td_piecewise_path* pw_path, td_point_array* points);
+    td_canvas_info setup_canvas_layout_with_bender(path_bender* bender, td_point_array* points);
 
     // Rendering buffer paths to avoid per-frame allocation.
     td_path render_fill_buffer;
@@ -307,8 +307,6 @@ struct td_demo
     void render_lines(const td_vec2* points, size_t count, const td_rgba8& color);
 
     td_font_store* get_font(int font_type);
-
-    void handle_interactions();
 };
 
 #endif // TD_APP_HPP
