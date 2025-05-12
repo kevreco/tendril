@@ -160,7 +160,8 @@ td_demo::td_demo()
 	selected_demo = demo_type_TENDRILIS_ON_CURVE;
 
 	td_font_store::init_from_file(&regular_font, IMGUI_EXTENSION_TEXT_FONT, 0);
-	td_font_store::init_from_file(&tendrilis_font, "./TendrilisExtra-Regular.ttf", 0);
+	td_font_store::init_from_file(&tendrilis_font, "./Tendrilis-v2-Regular.ttf", 0);
+
 	// Initialize bitmap with static buffer of rgba.
 	bitmap = td_bitmap{ bitmap_buffer, TD_CANVAS_WIDTH , TD_CANVAS_HEIGHT };
 	
