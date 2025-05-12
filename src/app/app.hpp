@@ -1,12 +1,6 @@
 #ifndef TD_APP_HPP
 #define TD_APP_HPP
 
-// Table of content
-//
-//    gui_backend
-//    gui
-//    demo
-
 #define TD_APP_NAME "Tendril"
 
 /* Version of the application. */
