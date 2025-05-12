@@ -401,13 +401,18 @@ void td_piecewise_path::reserve(size_t count)
 
 td_vec2 td_piecewise_path::point_at_time(float t) const
 {
-    size_t index;
-    if (try_get_lower_point_index_at_time(t, &index))
+    if (times.size())
     {
-        // Get ratio [0.0f - 1.0f] of what represent 't' between T[0] and T[1]
-        float time_for_lerp = td::inv_lerp(times[index], times[index + 1], t);
-        // Standard lerp between P[0] and P[1] 
-        return td::lerp(points[index], points[index + 1], time_for_lerp);
+        t = td_max(t, times.front());
+
+        size_t index;
+        if (try_get_lower_point_index_at_time(t, &index))
+        {
+            // Get ratio [0.0f - 1.0f] of what represent 't' between T[0] and T[1]
+            float time_for_lerp = td::inv_lerp(times[index], times[index + 1], t);
+            // Standard lerp between P[0] and P[1] 
+            return td::lerp(points[index], points[index + 1], time_for_lerp);
+        }
     }
     
     return td_vec2();
@@ -415,10 +420,15 @@ td_vec2 td_piecewise_path::point_at_time(float t) const
 
 td_vec2 td_piecewise_path::unit_normal_at_time(float t) const
 {
-    size_t index;
-    if (try_get_lower_point_index_at_time(t, &index))
+    if (times.size())
     {
-        return td::normalized(normal_at(index));
+        t = td_max(t, times.front());
+
+        size_t index;
+        if (try_get_lower_point_index_at_time(t, &index))
+        {
+            return td::normalized(normal_at(index));
+        }
     }
 
     return td_vec2();
@@ -426,15 +436,20 @@ td_vec2 td_piecewise_path::unit_normal_at_time(float t) const
 
 td_vec2 td_piecewise_path::smoothed_unit_normal_at_time(float t) const
 {
-    size_t index;
-    if (try_get_lower_point_index_at_time(t, &index))
+    if (times.size())
     {
-        // Get ratio [0.0f - 1.0f] of what represent 't' between T[0] and T[1]
-        float time_for_lerp = td::inv_lerp(times[index], times[index + 1], t);
-        // Standard lerp between tangent[0] and tangent[1] 
-        td_vec2 interpolated_normal = td::lerp(normal_at(index), normal_at(index + 1), time_for_lerp);
+        t = td_max(t, times.front());
 
-        return td::normalized(interpolated_normal);
+        size_t index;
+        if (try_get_lower_point_index_at_time(t, &index))
+        {
+            // Get ratio [0.0f - 1.0f] of what represent 't' between T[0] and T[1]
+            float time_for_lerp = td::inv_lerp(times[index], times[index + 1], t);
+            // Standard lerp between tangent[0] and tangent[1] 
+            td_vec2 interpolated_normal = td::lerp(normal_at(index), normal_at(index + 1), time_for_lerp);
+
+            return td::normalized(interpolated_normal);
+        }
     }
 
     return td_vec2();

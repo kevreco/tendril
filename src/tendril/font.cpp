@@ -308,7 +308,7 @@ namespace td {
         //          (y)                0 --> 1 (x)
         //           
         transform.set_scale(scale, -scale);
-        transform.set_translation(pos.x, pos.y);
+        transform.set_translation(pos.x , pos.y);
 
         td_transform_inserter inserter(path, transform);
 
