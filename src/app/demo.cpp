@@ -138,13 +138,6 @@ static periodic period;
 
 static td_path* apply_various_effect(td_path* input_path);
 
-// Remove new line and replace them with the separator "/".
-// Remove space and replace them with the separator "/"
-// as suggested from the guide: https://anomalis.gumroad.com/l/tendrilis-guide
-static void normalize_tendrilis_text(std::string* str);
-
-static std::string normalized_tendrilis_text(std::string* str);
-
 // Returns true if the state was changed.
 static bool set_curve_edit_state(td_curve_edit_state* edit_state, td_curve_edit_state state);
 
@@ -616,15 +609,10 @@ void td_demo::display_demo()
 		case demo_type_TENDRILIS_ON_CURVE: {
 			td_font_store* font = get_font(tendrilis_on_curve.font_type);
 
-			// Adjust text if tendrilis font is used.
-			std::string text = font == &tendrilis_font
-				? normalized_tendrilis_text(&tendrilis_on_curve.text)
-				: tendrilis_on_curve.text;
-
 			tendrilis_on_curve.shape.clear();
 
 			// Convert text to path
-			td::insert_text_to_path(font, text.data(), td_vec2(), tendrilis_on_curve.font_size, &tendrilis_on_curve.shape);
+			td::insert_text_to_path(font, tendrilis_on_curve.text.data(), td_vec2(), tendrilis_on_curve.font_size, &tendrilis_on_curve.shape);
 
 			td_path* path = apply_various_effect(&tendrilis_on_curve.control_path);
 
@@ -644,15 +632,10 @@ void td_demo::display_demo()
 
 			td_font_store* font = get_font(spiro.font_type);
 
-			// Adjust text if tendrilis font is used.
-			std::string text = font == &tendrilis_font
-				? normalized_tendrilis_text(&spiro.text)
-				: spiro.text;
-
 			spiro.shape.clear();
 		
 			// Convert text to path
-			td::insert_text_to_path(font, text.data(), td_vec2(), spiro.font_size, &spiro.shape);
+			td::insert_text_to_path(font, spiro.text.data(), td_vec2(), spiro.font_size, &spiro.shape);
 
 			td_point_array points = spiro.points;
 
@@ -1099,24 +1082,6 @@ static td_path* apply_various_effect(td_path* input_path)
 	path = td::apply_effect(&period, path);
 
 	return path;
-}
-
-static void normalize_tendrilis_text(std::string* str)
-{
-	for (int i = 0; i < str->size(); i += 1)
-	{
-		if (str->at(i) == ' ' || str->at(i) == '\r' || str->at(i) == '\n')
-		{
-			str->at(i) = '/';
-		}
-	}
-}
-
-static std::string normalized_tendrilis_text(std::string* str)
-{
-	std::string normalized = *str;
-	normalize_tendrilis_text(&normalized);
-	return normalized;
 }
 
 static bool set_curve_edit_state(td_curve_edit_state* edit_state, td_curve_edit_state state)
