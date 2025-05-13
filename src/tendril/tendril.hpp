@@ -627,7 +627,7 @@ enum td_svg_options
     td_svg_options_STROKE = 1 << 1,
     td_svg_options_ABSOLUTE_COORD = 1 << 2,
     td_svg_options_RELATIVE_COORD = 1 << 3,
-    td_svg_options_DEFAULT = td_svg_options_STROKE | td_svg_options_RELATIVE_COORD
+    td_svg_options_DEFAULT = td_svg_options_FILL | td_svg_options_RELATIVE_COORD
 };
 
 typedef td_vector<td_vec2> td_point_array;
