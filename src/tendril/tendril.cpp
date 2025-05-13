@@ -153,6 +153,30 @@ void td_arena::rollback_state(td_arena_state state)
 // misc
 // ============================================================================
 
+int td_str_fmt(char* buffer, size_t buffer_size, const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    int len = vsnprintf(buffer, buffer_size, fmt, args);
+
+    va_end(args);
+    if (buffer == NULL)
+        return len;
+
+#if _MSC_VER
+    if (len == -1)
+#else
+    if (len >= (int)buffer_size) 
+#endif
+    {
+        len = (int)buffer_size - 1;
+    }
+
+    buffer[len] = 0;
+    return len;
+}
+
 int td_path_cmd_point_count(td_path_cmd cmd)
 {
     int size = 0;

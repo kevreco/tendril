@@ -111,6 +111,9 @@ static inline void td_copy(T* dest, const T* src, size_t count)
     memcpy(dest, src, count * sizeof(T));
 }
 
+// Equivalent of snprintf with some extra check included.
+int td_str_fmt(char* buffer, size_t buffer_size, const char* fmt, ...);
+
 static int td_path_cmd_point_count(td_path_cmd cmd);
 
 static const char* td_utf8_codepoint(const char* str, td_codepoint* out_codepoint);

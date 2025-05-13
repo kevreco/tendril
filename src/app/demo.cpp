@@ -876,7 +876,12 @@ void td_demo::display_svg_widget(const td_path& path, float button_width)
 {
 	if (ImGui::Button("Save to SVG"))
 	{
-		td::path_to_svg_file(path, svg_file_name, TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT, "darkgreen");
+		// Convert color to hex string.
+		char buffer[64];
+		td_rgba8_to_hex(buffer, sizeof(buffer), shape_color);
+
+		// Save path to file.
+		td::path_to_svg_file(path, svg_file_name, TD_CANVAS_WIDTH, TD_CANVAS_HEIGHT, buffer);
 
 		app_backend::save_file_client_side(svg_file_name, svg_file_name);
 

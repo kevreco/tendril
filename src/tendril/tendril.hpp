@@ -50,6 +50,7 @@
 #include <stdint.h> // uint16_t uint32_t
 #include <string.h> // memset
 #include <stddef.h> // ptrdiff_t
+#include <stdarg.h> // va_start etc.
 
 #define STBTT_STATIC
 #include "td_stb_truetype.h"
@@ -526,6 +527,8 @@ struct td_rgba8
     }
 };
 
+int td_rgba8_to_hex(char* buffer, size_t buffer_len, td_rgba8 color);
+
 union td_rgba32
 {
     uint32_t u32;
@@ -590,6 +593,9 @@ union td_rgba32
         printf("%d %d %d %d \n", c.r(), c.g(), c.b(), c.a());
     }
 };
+
+int td_rgba32_to_hex(char* buffer, size_t buffer_len, td_rgba32 color);
+
 
 //=============================================================================
 // path.cpp
@@ -792,6 +798,7 @@ namespace td {
     void path_to_offset_path(const td_path& path, td_path* offset_path, float offset);
 
     // Create SVG file with a single path.
+    // color: Can be a hexadecimal color or a known CSS color name
     void path_to_svg_file(const td_path& path, const char* filename, size_t width, size_t height, const char* color = "black", int option = td_svg_options_DEFAULT);
 
     // Create SVG file with a single path.

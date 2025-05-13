@@ -10,7 +10,8 @@
 //    td_recti
 //    td_bezier
 //    td_transform
-//    periodic functions
+//    td_rgba8
+//    td_rgba32
 //    td_line_line_intersection
 //    td_line_offset_by
 
@@ -519,6 +520,24 @@ td_transform td_transform::inversed() const
     t.dx = m21 * dy - m12 * dx;
     t.dy = m22 * dx - m11 * dy;
     return t;
+}
+
+// ============================================================================
+// td_rgba8
+// ============================================================================
+
+int td_rgba8_to_hex(char* buffer, size_t buffer_len, td_rgba8 color)
+{
+    return td_rgba32_to_hex(buffer, buffer_len, color.to_u32());
+}
+
+// ============================================================================
+// td_rgba32
+// ============================================================================
+
+int td_rgba32_to_hex(char* buffer, size_t buffer_len, td_rgba32 color)
+{
+    return td_str_fmt(buffer, buffer_len, "#%02X%02X%02X%02X", color.r(), color.g(), color.b(), color.a());
 }
 
 bool td_line_line_intersection(const td_vec2& line1a, const td_vec2& line1b, const td_vec2& line2a, const td_vec2& line2b, td_vec2* intersection)
