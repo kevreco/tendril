@@ -120,8 +120,6 @@ struct td_demo
         bool fullscreen = true;
         bool show_control_path = true;
         float path_offset = 2.0f;
-        bool show_normals = false;
-        float normal_scale = 30.0f;
         bool show_control_points = true;
         td_vec2 display_point_size = td_vec2{ 8.0f, 8.0f };
         td_vec2 grab_point_size = td_vec2{ 11.0f, 11.0f };

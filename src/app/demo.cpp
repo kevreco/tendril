@@ -354,12 +354,6 @@ void td_demo::display_options()
 	ImGui::SetNextItemWidth(item_width);
 	ImGui::InputFloat("Path Offset", &cfg.path_offset, 1.0f);
 
-	ImGui::SeparatorText("Normal"); // ===
-
-	ImGui::Checkbox("Show Normals of Path", &cfg.show_normals);
-	ImGui::SetNextItemWidth(item_width);
-	ImGui::InputFloat("Scale", &cfg.normal_scale, 5.0f);
-
 	ImGui::SeparatorText("Background"); // ===
 
 	ImGui::Checkbox("Show Grid", &cfg.show_background_grid);
