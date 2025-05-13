@@ -13,6 +13,8 @@
 #include "3rdparty/spiro/spiro.h"
 #include "imgui_plus_extensions.h"
 
+// TD_VEC2_CLASS_EXTRA will define a constructor taking ImVec2 and a ImVec2 implicit cast operator
+// to convert back and forth between td_vec2 and ImVec2.
 #define TD_VEC2_CLASS_EXTRA                                    \
         constexpr td_vec2(const ImVec2& f) : x(f.x), y(f.y) {} \
         operator ImVec2() const { return ImVec2(x, y); }
@@ -21,7 +23,7 @@
 
 #include "tendril_extensions.hpp"
 
-#define TD_CANVAS_WIDTH (720 *4/5)
+#define TD_CANVAS_WIDTH (720 * 4/5)
 #define TD_CANVAS_HEIGHT (576 * 4/5)
 
 typedef unsigned int texture_handle;
